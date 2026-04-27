@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Forge — Green Variants</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #111;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .phone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 24px;
+    gap: 16px;
+    min-height: 100vh;
+    background: #000;
+  }
+
+  .divider { width: 2px; background: #222; flex-shrink: 0; }
+
+  .theme-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 4px 10px;
+    border-radius: 20px; display: inline-block; margin-bottom: 4px;
+  }
+  .theme-name { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .theme-hex { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 18px; font-family: 'SF Mono', monospace; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-pill { width: 51px; height: 31px; border-radius: 16px; position: relative; flex-shrink: 0; }
+  .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.4); transform: translateX(20px); }
+
+  .progress-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: rgba(255,255,255,0.4); }
+  .progress-track { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; margin-bottom: 16px; }
+  .progress-fill { height: 100%; border-radius: 4px; width: 62%; }
+
+  .timer-card { border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; background: #111; }
+  .timer-ring { width: 50px; height: 50px; border-radius: 50%; border: 3px solid; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .timer-time { font-size: 14px; font-weight: 700; }
+  .timer-label { font-size: 12px; color: rgba(255,255,255,0.38); margin-top: 2px; }
+  .timer-stop { margin-left: auto; background: rgba(255,59,48,0.15); color: #ff453a; border: none; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  .card { border-radius: 16px; overflow: hidden; background: #111; margin-bottom: 0; }
+  .card-header { padding: 14px 16px 10px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .exercise-name { font-size: 17px; font-weight: 600; color: #fff; }
+  .exercise-meta { font-size: 13px; color: rgba(255,255,255,0.38); margin-top: 2px; }
+  .status-pill { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+
+  .sets-header { display: grid; grid-template-columns: 28px 1fr 1fr 36px; gap: 6px; padding: 0 16px 6px; font-size: 11px; color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.06em; }
+  .set-row { display: grid; grid-template-columns: 28px 1fr 1fr 36px; gap: 6px; padding: 5px 16px; align-items: center; }
+  .set-num { font-size: 13px; color: rgba(255,255,255,0.3); text-align: center; }
+  .set-input { border-radius: 8px; padding: 7px 10px; font-size: 15px; font-weight: 500; text-align: center; border: none; outline: none; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+  .set-input.saved { background: rgba(255,255,255,0.08); color: #fff; }
+  .check-btn { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+  .check-empty { background: rgba(255,255,255,0.08); }
+  .separator-line { height: 1px; margin: 0 16px; background: rgba(255,255,255,0.07); }
+  .prev-row { display: grid; grid-template-columns: 28px 1fr 1fr 36px; gap: 6px; padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .prev-val { font-size: 13px; text-align: center; color: rgba(255,255,255,0.38); }
+
+  .complete-btn { width: 100%; height: 50px; border-radius: 14px; border: none; font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 4px; color: #000; }
+
+  .tab-bar { position: sticky; bottom: 0; margin: 0 -24px -32px; padding: 8px 16px 20px; display: flex; justify-content: space-around; margin-top: auto; background: rgba(0,0,0,0.97); border-top: 1px solid rgba(255,255,255,0.08); }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; min-width: 60px; }
+  .tab-icon { font-size: 22px; line-height: 1; }
+  .tab-inactive { color: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+
+<!-- GREEN 1: iOS System Green #30d158 -->
+<div class="phone" style="background:#000;">
+  <div>
+    <span class="theme-label" style="background:rgba(48,209,88,0.12);color:#30d158;border:1px solid rgba(48,209,88,0.25);">Green 1</span>
+    <div class="theme-name">iOS System</div>
+    <div class="theme-hex">#30d158 — bright, saturated</div>
+  </div>
+  <div class="toggle-row">
+    <span style="font-size:15px;color:rgba(255,255,255,0.85);">Hypertrophy Timer</span>
+    <div class="toggle-pill" style="background:#30d158;"><div class="toggle-thumb" style="background:#000;"></div></div>
+  </div>
+  <div>
+    <div class="progress-row"><span>8 of 13 sets logged</span><span>vs. Apr 8</span></div>
+    <div class="progress-track"><div class="progress-fill" style="background:#30d158;"></div></div>
+  </div>
+  <div class="timer-card" style="border:1px solid rgba(48,209,88,0.2);">
+    <div class="timer-ring" style="border-color:#30d158;background:rgba(48,209,88,0.07);"><span class="timer-time" style="color:#30d158;">1:24</span></div>
+    <div><div style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.85);">Resting</div><div class="timer-label">Barbell Squat · Set 2</div></div>
+    <button class="timer-stop">Done</button>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div><div class="exercise-name">Barbell Squat</div><div class="exercise-meta">4 sets · 8–10 reps</div></div>
+      <div class="status-pill" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.55);">2/4</div>
+    </div>
+    <div class="sets-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
+    <div class="set-row"><span class="set-num">1</span><div class="set-input saved">185 lbs</div><div class="set-input saved">9</div><button class="check-btn" style="background:#30d158;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">2</span><div class="set-input saved">185 lbs</div><div class="set-input saved">8</div><button class="check-btn" style="background:#30d158;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">3</span><div class="set-input" style="color:rgba(255,255,255,0.4);">185 lbs</div><div class="set-input" style="color:rgba(255,255,255,0.4);">8</div><button class="check-btn check-empty"></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">4</span><div class="set-input" style="color:rgba(255,255,255,0.4);">185 lbs</div><div class="set-input" style="color:rgba(255,255,255,0.4);">8</div><button class="check-btn check-empty"></button></div>
+    <div class="prev-row"><span style="font-size:11px;color:rgba(255,255,255,0.28);">Last</span><span class="prev-val">180 lbs</span><span class="prev-val">9 reps</span><span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div><div class="exercise-name">Romanian Deadlift</div><div class="exercise-meta">3 sets · 10–12 reps</div></div>
+      <div class="status-pill" style="background:rgba(48,209,88,0.12);color:#30d158;">Done</div>
+    </div>
+    <div class="sets-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
+    <div class="set-row"><span class="set-num">1</span><div class="set-input saved">135 lbs</div><div class="set-input saved">11</div><button class="check-btn" style="background:#30d158;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">2</span><div class="set-input saved">135 lbs</div><div class="set-input saved">10</div><button class="check-btn" style="background:#30d158;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">3</span><div class="set-input saved">135 lbs</div><div class="set-input saved">12</div><button class="check-btn" style="background:#30d158;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  </div>
+  <button class="complete-btn" style="background:#30d158;">Complete Workout</button>
+  <div class="tab-bar">
+    <div class="tab-item"><span class="tab-icon" style="color:#fff;">🏋️</span><span style="color:#fff;font-size:10px;">Workout</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">📊</span><span class="tab-inactive">Progress</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">🥗</span><span class="tab-inactive">Nutrition</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">👤</span><span class="tab-inactive">Profile</span></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- GREEN 2: Mint #00d68f -->
+<div class="phone" style="background:#000;">
+  <div>
+    <span class="theme-label" style="background:rgba(0,214,143,0.12);color:#00d68f;border:1px solid rgba(0,214,143,0.25);">Green 2</span>
+    <div class="theme-name">Mint</div>
+    <div class="theme-hex">#00d68f — cool, sophisticated</div>
+  </div>
+  <div class="toggle-row">
+    <span style="font-size:15px;color:rgba(255,255,255,0.85);">Hypertrophy Timer</span>
+    <div class="toggle-pill" style="background:#00d68f;"><div class="toggle-thumb" style="background:#000;"></div></div>
+  </div>
+  <div>
+    <div class="progress-row"><span>8 of 13 sets logged</span><span>vs. Apr 8</span></div>
+    <div class="progress-track"><div class="progress-fill" style="background:#00d68f;"></div></div>
+  </div>
+  <div class="timer-card" style="border:1px solid rgba(0,214,143,0.2);">
+    <div class="timer-ring" style="border-color:#00d68f;background:rgba(0,214,143,0.07);"><span class="timer-time" style="color:#00d68f;">1:24</span></div>
+    <div><div style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.85);">Resting</div><div class="timer-label">Barbell Squat · Set 2</div></div>
+    <button class="timer-stop">Done</button>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div><div class="exercise-name">Barbell Squat</div><div class="exercise-meta">4 sets · 8–10 reps</div></div>
+      <div class="status-pill" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.55);">2/4</div>
+    </div>
+    <div class="sets-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
+    <div class="set-row"><span class="set-num">1</span><div class="set-input saved">185 lbs</div><div class="set-input saved">9</div><button class="check-btn" style="background:#00d68f;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">2</span><div class="set-input saved">185 lbs</div><div class="set-input saved">8</div><button class="check-btn" style="background:#00d68f;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">3</span><div class="set-input" style="color:rgba(255,255,255,0.4);">185 lbs</div><div class="set-input" style="color:rgba(255,255,255,0.4);">8</div><button class="check-btn check-empty"></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">4</span><div class="set-input" style="color:rgba(255,255,255,0.4);">185 lbs</div><div class="set-input" style="color:rgba(255,255,255,0.4);">8</div><button class="check-btn check-empty"></button></div>
+    <div class="prev-row"><span style="font-size:11px;color:rgba(255,255,255,0.28);">Last</span><span class="prev-val">180 lbs</span><span class="prev-val">9 reps</span><span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div><div class="exercise-name">Romanian Deadlift</div><div class="exercise-meta">3 sets · 10–12 reps</div></div>
+      <div class="status-pill" style="background:rgba(0,214,143,0.12);color:#00d68f;">Done</div>
+    </div>
+    <div class="sets-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
+    <div class="set-row"><span class="set-num">1</span><div class="set-input saved">135 lbs</div><div class="set-input saved">11</div><button class="check-btn" style="background:#00d68f;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">2</span><div class="set-input saved">135 lbs</div><div class="set-input saved">10</div><button class="check-btn" style="background:#00d68f;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">3</span><div class="set-input saved">135 lbs</div><div class="set-input saved">12</div><button class="check-btn" style="background:#00d68f;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  </div>
+  <button class="complete-btn" style="background:#00d68f;">Complete Workout</button>
+  <div class="tab-bar">
+    <div class="tab-item"><span class="tab-icon" style="color:#fff;">🏋️</span><span style="color:#fff;font-size:10px;">Workout</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">📊</span><span class="tab-inactive">Progress</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">🥗</span><span class="tab-inactive">Nutrition</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">👤</span><span class="tab-inactive">Profile</span></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- GREEN 3: Lime #a3e635 -->
+<div class="phone" style="background:#000;">
+  <div>
+    <span class="theme-label" style="background:rgba(163,230,53,0.12);color:#a3e635;border:1px solid rgba(163,230,53,0.25);">Green 3</span>
+    <div class="theme-name">Lime</div>
+    <div class="theme-hex">#a3e635 — bold, electric</div>
+  </div>
+  <div class="toggle-row">
+    <span style="font-size:15px;color:rgba(255,255,255,0.85);">Hypertrophy Timer</span>
+    <div class="toggle-pill" style="background:#a3e635;"><div class="toggle-thumb" style="background:#000;"></div></div>
+  </div>
+  <div>
+    <div class="progress-row"><span>8 of 13 sets logged</span><span>vs. Apr 8</span></div>
+    <div class="progress-track"><div class="progress-fill" style="background:#a3e635;"></div></div>
+  </div>
+  <div class="timer-card" style="border:1px solid rgba(163,230,53,0.2);">
+    <div class="timer-ring" style="border-color:#a3e635;background:rgba(163,230,53,0.07);"><span class="timer-time" style="color:#a3e635;">1:24</span></div>
+    <div><div style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.85);">Resting</div><div class="timer-label">Barbell Squat · Set 2</div></div>
+    <button class="timer-stop">Done</button>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div><div class="exercise-name">Barbell Squat</div><div class="exercise-meta">4 sets · 8–10 reps</div></div>
+      <div class="status-pill" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.55);">2/4</div>
+    </div>
+    <div class="sets-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
+    <div class="set-row"><span class="set-num">1</span><div class="set-input saved">185 lbs</div><div class="set-input saved">9</div><button class="check-btn" style="background:#a3e635;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">2</span><div class="set-input saved">185 lbs</div><div class="set-input saved">8</div><button class="check-btn" style="background:#a3e635;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">3</span><div class="set-input" style="color:rgba(255,255,255,0.4);">185 lbs</div><div class="set-input" style="color:rgba(255,255,255,0.4);">8</div><button class="check-btn check-empty"></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">4</span><div class="set-input" style="color:rgba(255,255,255,0.4);">185 lbs</div><div class="set-input" style="color:rgba(255,255,255,0.4);">8</div><button class="check-btn check-empty"></button></div>
+    <div class="prev-row"><span style="font-size:11px;color:rgba(255,255,255,0.28);">Last</span><span class="prev-val">180 lbs</span><span class="prev-val">9 reps</span><span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div><div class="exercise-name">Romanian Deadlift</div><div class="exercise-meta">3 sets · 10–12 reps</div></div>
+      <div class="status-pill" style="background:rgba(163,230,53,0.12);color:#a3e635;">Done</div>
+    </div>
+    <div class="sets-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
+    <div class="set-row"><span class="set-num">1</span><div class="set-input saved">135 lbs</div><div class="set-input saved">11</div><button class="check-btn" style="background:#a3e635;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">2</span><div class="set-input saved">135 lbs</div><div class="set-input saved">10</div><button class="check-btn" style="background:#a3e635;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">3</span><div class="set-input saved">135 lbs</div><div class="set-input saved">12</div><button class="check-btn" style="background:#a3e635;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  </div>
+  <button class="complete-btn" style="background:#a3e635;">Complete Workout</button>
+  <div class="tab-bar">
+    <div class="tab-item"><span class="tab-icon" style="color:#fff;">🏋️</span><span style="color:#fff;font-size:10px;">Workout</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">📊</span><span class="tab-inactive">Progress</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">🥗</span><span class="tab-inactive">Nutrition</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">👤</span><span class="tab-inactive">Profile</span></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- GREEN 4: Sage #6ee7b7 -->
+<div class="phone" style="background:#000;">
+  <div>
+    <span class="theme-label" style="background:rgba(110,231,183,0.12);color:#6ee7b7;border:1px solid rgba(110,231,183,0.25);">Green 4</span>
+    <div class="theme-name">Sage</div>
+    <div class="theme-hex">#6ee7b7 — soft, premium</div>
+  </div>
+  <div class="toggle-row">
+    <span style="font-size:15px;color:rgba(255,255,255,0.85);">Hypertrophy Timer</span>
+    <div class="toggle-pill" style="background:#6ee7b7;"><div class="toggle-thumb" style="background:#000;"></div></div>
+  </div>
+  <div>
+    <div class="progress-row"><span>8 of 13 sets logged</span><span>vs. Apr 8</span></div>
+    <div class="progress-track"><div class="progress-fill" style="background:#6ee7b7;"></div></div>
+  </div>
+  <div class="timer-card" style="border:1px solid rgba(110,231,183,0.2);">
+    <div class="timer-ring" style="border-color:#6ee7b7;background:rgba(110,231,183,0.07);"><span class="timer-time" style="color:#6ee7b7;">1:24</span></div>
+    <div><div style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.85);">Resting</div><div class="timer-label">Barbell Squat · Set 2</div></div>
+    <button class="timer-stop">Done</button>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div><div class="exercise-name">Barbell Squat</div><div class="exercise-meta">4 sets · 8–10 reps</div></div>
+      <div class="status-pill" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.55);">2/4</div>
+    </div>
+    <div class="sets-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
+    <div class="set-row"><span class="set-num">1</span><div class="set-input saved">185 lbs</div><div class="set-input saved">9</div><button class="check-btn" style="background:#6ee7b7;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">2</span><div class="set-input saved">185 lbs</div><div class="set-input saved">8</div><button class="check-btn" style="background:#6ee7b7;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">3</span><div class="set-input" style="color:rgba(255,255,255,0.4);">185 lbs</div><div class="set-input" style="color:rgba(255,255,255,0.4);">8</div><button class="check-btn check-empty"></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">4</span><div class="set-input" style="color:rgba(255,255,255,0.4);">185 lbs</div><div class="set-input" style="color:rgba(255,255,255,0.4);">8</div><button class="check-btn check-empty"></button></div>
+    <div class="prev-row"><span style="font-size:11px;color:rgba(255,255,255,0.28);">Last</span><span class="prev-val">180 lbs</span><span class="prev-val">9 reps</span><span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div><div class="exercise-name">Romanian Deadlift</div><div class="exercise-meta">3 sets · 10–12 reps</div></div>
+      <div class="status-pill" style="background:rgba(110,231,183,0.12);color:#6ee7b7;">Done</div>
+    </div>
+    <div class="sets-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
+    <div class="set-row"><span class="set-num">1</span><div class="set-input saved">135 lbs</div><div class="set-input saved">11</div><button class="check-btn" style="background:#6ee7b7;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">2</span><div class="set-input saved">135 lbs</div><div class="set-input saved">10</div><button class="check-btn" style="background:#6ee7b7;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    <div class="separator-line"></div>
+    <div class="set-row"><span class="set-num">3</span><div class="set-input saved">135 lbs</div><div class="set-input saved">12</div><button class="check-btn" style="background:#6ee7b7;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  </div>
+  <button class="complete-btn" style="background:#6ee7b7;">Complete Workout</button>
+  <div class="tab-bar">
+    <div class="tab-item"><span class="tab-icon" style="color:#fff;">🏋️</span><span style="color:#fff;font-size:10px;">Workout</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">📊</span><span class="tab-inactive">Progress</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">🥗</span><span class="tab-inactive">Nutrition</span></div>
+    <div class="tab-item"><span class="tab-icon tab-inactive">👤</span><span class="tab-inactive">Profile</span></div>
+  </div>
+</div>
+
+</body>
+</html>
