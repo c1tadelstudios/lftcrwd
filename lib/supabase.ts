@@ -180,10 +180,10 @@ export async function getMyMealPlan(): Promise<string | null> {
 }
 
 /** Gets meal calorie targets for the current user. */
-export async function getMealCalorieTargets(): Promise<Record<string, number> | null> {
+export async function getMealCalorieTargets(): Promise<Record<number, number>> {
   const client = getSupabase();
   const { data: { user } } = await client.auth.getUser();
-  if (!user) return null;
+  if (!user) return {};
 
   const { data } = await client
     .from('meal_calorie_targets')
@@ -191,7 +191,7 @@ export async function getMealCalorieTargets(): Promise<Record<string, number> | 
     .eq('user_id', user.id)
     .single();
 
-  return data ?? null;
+  return (data as Record<number, number>) ?? {};
 }
 
 // =============================================================================
