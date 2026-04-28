@@ -15,7 +15,7 @@ export default function DiscoverPage() {
           <p className="text-white/25 text-[15px] mt-1">Set your status to start matching.</p>
         </div>
       </div>
-      <Nav active="discover" />
+      <Nav />
     </div>
   );
 }

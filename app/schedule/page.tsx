@@ -14,7 +14,7 @@ export default function SchedulePage() {
           <p className="text-white/25 text-[15px] mt-1">Match and schedule a regular session.</p>
         </div>
       </div>
-      <Nav active="schedule" />
+      <Nav />
     </div>
   );
 }

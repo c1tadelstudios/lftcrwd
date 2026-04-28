@@ -14,7 +14,7 @@ export default function MatchesPage() {
           <p className="text-white/25 text-[15px] mt-1">Start swiping to find a partner.</p>
         </div>
       </div>
-      <Nav active="matches" />
+      <Nav />
     </div>
   );
 }
