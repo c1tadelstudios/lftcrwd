@@ -57,7 +57,7 @@ export type DailyLog = {
   meal_3_done: boolean;
   meal_4_done: boolean;
   meal_5_done: boolean;
-  custom_meals_done: boolean[];
+  custom_meals_done: Record<string, boolean> | null;
 };
 
 // =============================================================================
