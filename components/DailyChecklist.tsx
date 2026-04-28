@@ -120,7 +120,7 @@ export default function DailyChecklist() {
       <div className="bg-zinc-800 rounded-2xl p-4">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-zinc-300">Steps</span>
-          <span className="text-sm text-zinc-400">{log.steps.toLocaleString()} / {DAILY_TARGETS.steps.max.toLocaleString()}</span>
+          <span className="text-sm text-zinc-400">{(log.steps ?? 0).toLocaleString()} / {DAILY_TARGETS.steps.max.toLocaleString()}</span>
         </div>
         <input
           type="number"
