@@ -9,7 +9,8 @@ export default function TodayHeader() {
   const { business_name } = useSettings();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const display =
         user.user_metadata?.name ||
@@ -17,7 +18,7 @@ export default function TodayHeader() {
         user.email?.split('@')[0] ||
         '';
       setName(display);
-    });
+    })();
   }, []);
 
   const date = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });

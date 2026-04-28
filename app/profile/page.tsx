@@ -225,7 +225,8 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const userEmail = user.email ?? '';
       setEmail(userEmail);
@@ -245,7 +246,7 @@ export default function ProfilePage() {
       }
 
       fetchProgressStats(user.id);
-    });
+    })();
     getRecentSessions(200).then(s => setTotalSessions(s.length));
     getOrCreateDailyLog(today()).then(log => { if (log) setTodayLogId(log.id); });
 
