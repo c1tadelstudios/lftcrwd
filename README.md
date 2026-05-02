@@ -132,6 +132,13 @@ SESSION_SECRET=your-random-secret
 # Resend — for invite emails (optional)
 RESEND_API_KEY=re_your_key
 
+# Linear — for in-app issue reporting from the trainer dashboard (optional)
+# Get these from your Linear workspace: Settings → API (key) and the relevant project/team/label IDs
+LINEAR_API_KEY=lin_api_your_key
+LINEAR_PROJECT_ID=your-project-id
+LINEAR_TEAM_ID=your-team-id
+LINEAR_LABEL_COACH_REPORT=your-label-id
+
 # Public URL
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
