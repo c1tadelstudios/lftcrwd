@@ -66,7 +66,6 @@ export async function POST(request: NextRequest) {
 
   const json = await res.json();
   if (!json?.data?.issueCreate?.success) {
-    console.error('Linear error:', JSON.stringify(json));
     return NextResponse.json({ error: 'Failed to create Linear issue' }, { status: 500 });
   }
 

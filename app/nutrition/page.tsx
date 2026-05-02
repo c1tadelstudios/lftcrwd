@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import {
   supabase, getOrCreateDailyLog, today, getMyMealPlan,
   getMealCalorieTargets, type DailyLog,
@@ -60,11 +60,11 @@ function MealCard({ title, body, done, calories, onToggle }: {
   );
 }
 
-const mdComponents = {
-  p:      ({ children }: any) => <p className="text-[15px] text-white/45 mb-1 leading-5">{children}</p>,
-  ul:     ({ children }: any) => <ul className="space-y-0.5">{children}</ul>,
-  li:     ({ children }: any) => <li className="text-[15px] text-white/45 flex gap-2"><span className="text-white/20 mt-0.5 flex-shrink-0">·</span><span>{children}</span></li>,
-  strong: ({ children }: any) => <strong className="text-white/80 font-semibold">{children}</strong>,
+const mdComponents: Components = {
+  p:      ({ children }) => <p className="text-[15px] text-white/45 mb-1 leading-5">{children}</p>,
+  ul:     ({ children }) => <ul className="space-y-0.5">{children}</ul>,
+  li:     ({ children }) => <li className="text-[15px] text-white/45 flex gap-2"><span className="text-white/20 mt-0.5 flex-shrink-0">·</span><span>{children}</span></li>,
+  strong: ({ children }) => <strong className="text-white/80 font-semibold">{children}</strong>,
 };
 
 export default function NutritionPage() {
@@ -195,11 +195,11 @@ export default function NutritionPage() {
           ) : customPlan ? (
             <div className="bg-[#111111] rounded-2xl p-4">
               <ReactMarkdown components={{
-                p:      ({ children }: any) => <p className="text-[15px] text-white/60 mb-2 leading-5">{children}</p>,
-                ul:     ({ children }: any) => <ul className="space-y-0.5 mb-2">{children}</ul>,
-                li:     ({ children }: any) => <li className="text-[15px] text-white/60 flex gap-2"><span className="text-white/20 flex-shrink-0">·</span><span>{children}</span></li>,
-                strong: ({ children }: any) => <strong className="text-white font-semibold">{children}</strong>,
-              }}>{customPlan}</ReactMarkdown>
+                p:      ({ children }) => <p className="text-[15px] text-white/60 mb-2 leading-5">{children}</p>,
+                ul:     ({ children }) => <ul className="space-y-0.5 mb-2">{children}</ul>,
+                li:     ({ children }) => <li className="text-[15px] text-white/60 flex gap-2"><span className="text-white/20 flex-shrink-0">·</span><span>{children}</span></li>,
+                strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+              } as Components}>{customPlan}</ReactMarkdown>
             </div>
           ) : (
             NUTRITION.meals.map((meal, i) => {

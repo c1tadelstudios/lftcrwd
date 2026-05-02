@@ -1,11 +1,12 @@
 {
-  "name": "forge",
+  "name": "lftcrwd",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
@@ -22,6 +23,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

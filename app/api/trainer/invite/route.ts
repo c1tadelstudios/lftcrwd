@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       businessName,
     });
   } catch (err) {
-    console.error('Invite email failed:', err);
+    // Email failed — client was still created, trainer is warned via response
     // Don't block the invite — user exists and link is valid.
     // Warn the trainer so they can share the link manually if needed.
     return NextResponse.json({
