@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── Trainer routes — protected by Supabase session + admin flag ──────────
-  if (pathname.startsWith('/trainer') || pathname.startsWith('/api/trainer')) {
+  if (pathname.startsWith('/trainer') || pathname.startsWith('/api/trainer') || pathname.startsWith('/api/feedback')) {
     const response = NextResponse.next();
     const supabase = createMiddlewareClient(request, response);
     const { data: { user } } = await supabase.auth.getUser();

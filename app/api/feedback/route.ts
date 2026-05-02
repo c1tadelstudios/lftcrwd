@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Linear project, team, and label IDs for lftcrwd Beta
-const LINEAR_PROJECT_ID       = 'LINEAR_PROJECT_ID_REDACTED';
-const LINEAR_TEAM_ID          = 'LINEAR_TEAM_ID_REDACTED';
-const LINEAR_LABEL_COACH_REPORT = 'LINEAR_LABEL_ID_REDACTED';
+const LINEAR_PROJECT_ID       = process.env.LINEAR_PROJECT_ID       ?? '';
+const LINEAR_TEAM_ID          = process.env.LINEAR_TEAM_ID          ?? '';
+const LINEAR_LABEL_COACH_REPORT = process.env.LINEAR_LABEL_COACH_REPORT ?? '';
 
 const SEVERITY_PRIORITY: Record<string, number> = {
   blocking: 1, // Urgent
