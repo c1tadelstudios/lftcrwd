@@ -6,21 +6,82 @@ A coaching platform built for personal trainers and their clients. Coaches manag
 
 ---
 
-## What it does
+## Screenshots
 
-**For coaches:**
-- Invite clients by email (magic link onboarding via Supabase + Resend)
-- Assign workout and meal plans (markdown editor)
-- Track client compliance — workout streaks, activity heatmaps, "quiet for X days" alerts
-- View progress photos, weight trends, cardio history, and exercise overload charts
-- Send session notes and messages directly to clients
+| Trainer Dashboard | Client Today | Workout Logger |
+|---|---|---|
+| ![Trainer Dashboard](screenshots/trainer-dashboard.png) | ![Client Today](screenshots/client-today.png) | ![Workout Logger](screenshots/workout-logger.png) |
 
-**For clients:**
-- Today dashboard with a live completion ring (Protein / Water / Creatine / Cardio / Workout)
-- Workout logger with sets, reps, weight, and a hypertrophy rest timer
-- Meal plan viewer and daily macro logging
-- Progress photo uploads with a date-stamped grid
-- Direct message thread with their coach
+| Client Detail | Progress | Messages |
+|---|---|---|
+| ![Client Detail](screenshots/client-detail.png) | ![Progress](screenshots/progress.png) | ![Messages](screenshots/messages.png) |
+
+---
+
+## Features
+
+### For coaches
+
+**Dashboard**
+- Two-column desktop layout: fixed client list sidebar + scrollable content area
+- Mobile: iOS-style client list with avatar, active-today indicator, and a stat line per client
+- Weekly compliance % per client (workouts completed vs. 5 expected)
+- "Needs attention" badge — amber pill when a client has been quiet for 3+ days
+
+**Client management**
+- Invite clients by email — sends a branded magic link onboarding email via Resend
+- Re-invite at any time with a fresh link
+- Remove a client (soft delete — data is kept)
+
+**Client detail view — three tabs**
+- **Activity** — recent sessions, compliance heatmap, cardio history, meals log, weight trend chart, per-exercise overload charts
+- **Program** — markdown workout plan editor, meal plan editor with per-meal calorie targets, direct message thread
+- **Photos** — date-stamped grid of the client's progress photos with lightbox viewer
+
+**Session notes**
+- Emoji quick-reactions (👍 🔥 💪 ✅) that prefill a message to the client
+- Custom note textarea — sends via the trainer message API
+
+**Branding**
+- Set a custom business name and tagline
+- Appears on the client's Today dashboard header and in onboarding emails
+
+---
+
+### For clients
+
+**Today dashboard**
+- Live SVG completion ring tracking five daily goals: Protein / Water / Creatine / Cardio / Workout
+- "All done today" state when all goals are hit
+- One-tap workout CTA showing the next day from their assigned program
+- Onboarding welcome screen for new clients (dismissed once)
+
+**Workout logging**
+- Log exercises by day with sets, reps, and weight
+- Hypertrophy rest timer with screen wake lock (screen stays on between sets)
+- Trainer-assigned program rendered inline as a reference
+
+**Nutrition tracking**
+- Log protein (g), water (oz), creatine toggle, cardio (Treadmill / Stepper / Bike / Rower), steps, and weight
+- All saves in real time to Supabase
+
+**Meal plan**
+- View the trainer-assigned plan — toggle each meal done
+- Custom meal titles parsed from the trainer's markdown
+
+**Progress**
+- Weight trend chart over time
+- Per-exercise max weight chart (progressive overload tracking)
+- Progress photo uploads — 3-column date-stamped grid, lightbox viewer
+- Photos stored in a private Supabase Storage bucket, served via signed URLs
+
+**Messaging**
+- Direct chat thread with the trainer
+- Unread dot on the nav icon when a new trainer message arrives; clears on visit
+
+**Profile & export**
+- Gravatar avatar with initials fallback
+- Export workout history as Markdown, CSV, Word, or PDF — all client-side, no dependencies
 
 ---
 
