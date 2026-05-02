@@ -123,12 +123,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Trainer portal password
-APP_PASSWORD=choose-a-strong-password
-
-# Session signing secret (32+ random characters)
-SESSION_SECRET=your-random-secret
-
 # Resend — for invite emails (optional)
 RESEND_API_KEY=re_your_key
 
@@ -157,10 +151,21 @@ Open [http://localhost:3000](http://localhost:3000). The trainer portal is at `/
 
 | Role | Auth method | Access |
 |---|---|---|
-| **Trainer** | Password (`APP_PASSWORD` env var) | `/trainer/*` — all client data |
+| **Trainer** | Magic link (same as clients) + `is_admin` flag in Supabase | `/trainer/*` — all client data via "Coach area" in profile |
 | **Client** | Magic link (email OTP via Supabase) | Their own data only |
 
-This is a single-trainer setup. One `APP_PASSWORD` controls trainer access. Multi-trainer support is not currently implemented.
+Both roles log in the same way — via magic link at `/login`. The difference is the `is_admin` flag on the Supabase user account.
+
+**To set up a trainer account:**
+1. Create the trainer's account by inviting them (or having them sign in via `/login`)
+2. In the Supabase dashboard → Authentication → Users → find the trainer's account
+3. Edit their user and set `is_admin: true` in the **User Metadata** field:
+   ```json
+   { "is_admin": true }
+   ```
+4. The "Coach area" link will appear in their profile, giving access to `/trainer`
+
+This is a single-trainer setup by default — there is no multi-trainer role system.
 
 ---
 
