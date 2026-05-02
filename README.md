@@ -143,7 +143,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The trainer portal is at `/trainer/login`.
+Open [http://localhost:3000](http://localhost:3000). Log in at `/login` — the "Coach area" appears in the profile for admin accounts.
 
 ---
 
