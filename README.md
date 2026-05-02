@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# lftcrwd
 
-## Getting Started
+A coaching platform built for personal trainers and their clients. Coaches manage programs, track compliance, and communicate. Clients log workouts, meals, and progress.
 
-First, run the development server:
+**Live:** [app.lftcrwd.com](https://app.lftcrwd.com)
+
+---
+
+## What it does
+
+**For coaches:**
+- Invite clients by email (magic link onboarding via Supabase + Resend)
+- Assign workout and meal plans (markdown editor)
+- Track client compliance — workout streaks, activity heatmaps, "quiet for X days" alerts
+- View progress photos, weight trends, cardio history, and exercise overload charts
+- Send session notes and messages directly to clients
+
+**For clients:**
+- Today dashboard with a live completion ring (Protein / Water / Creatine / Cardio / Workout)
+- Workout logger with sets, reps, weight, and a hypertrophy rest timer
+- Meal plan viewer and daily macro logging
+- Progress photo uploads with a date-stamped grid
+- Direct message thread with their coach
+
+---
+
+## Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Styling:** Tailwind CSS 4
+- **Database & Auth:** Supabase (PostgreSQL + magic link auth)
+- **Email:** Resend
+- **Deployment:** Vercel
+
+---
+
+## Running locally
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/YOUR_USERNAME/lftcrwd.git
+cd lftcrwd
+npm install
+```
+
+### 2. Set up Supabase
+
+Create a project at [supabase.com](https://supabase.com). In the Supabase dashboard → SQL Editor, run `supabase-schema.sql` to create all tables, or apply migrations from the `migrations/` directory in order.
+
+### 3. Configure environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in `.env.local`:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Trainer portal password
+APP_PASSWORD=choose-a-strong-password
+
+# Session signing secret (32+ random characters)
+SESSION_SECRET=your-random-secret
+
+# Resend — for invite emails (optional)
+RESEND_API_KEY=re_your_key
+
+# Public URL
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+### 4. Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The trainer portal is at `/trainer/login`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Auth model
 
-## Learn More
+| Role | Auth method | Access |
+|---|---|---|
+| **Trainer** | Password (`APP_PASSWORD` env var) | `/trainer/*` — all client data |
+| **Client** | Magic link (email OTP via Supabase) | Their own data only |
 
-To learn more about Next.js, take a look at the following resources:
+This is a single-trainer setup. One `APP_PASSWORD` controls trainer access. Multi-trainer support is not currently implemented.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project structure
 
-## Deploy on Vercel
+```
+app/
+  (auth)/             # Magic link confirm, login
+  api/                # API routes (auth, trainer, feedback)
+  trainer/            # Trainer portal pages
+  workout/            # Client workout logger
+  nutrition/          # Client meal view
+  progress/           # Client progress photos and weight
+  messages/           # Client ↔ trainer chat
+  profile/            # Client profile and settings
+components/           # Shared React components
+lib/
+  supabase.ts         # Browser Supabase client and DB helpers
+  supabase-server.ts  # Server-side Supabase client
+  supabase-admin.ts   # Admin client (service role)
+  plan.ts             # Static plan data
+hooks/                # Custom React hooks
+middleware.ts         # Route protection
+migrations/           # Database migrations
+supabase-schema.sql   # Full schema — apply once to a new project
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+[GNU Affero General Public License v3.0](LICENSE)
+
+You are free to use, modify, and distribute this software. If you run a modified version as a network service, you must make the source code of your modifications available under the same license.
