@@ -22,6 +22,10 @@ export default function Nav() {
 
   useEffect(() => {
     if (pathname.startsWith('/trainer') || pathname === '/login') return;
+    if (pathname === '/messages') {
+      setHasUnread(false);
+      return;
+    }
     async function checkUnread() {
       const lastSeen = localStorage.getItem('lftcrwd_messages_last_seen');
       const { data: { user } } = await supabase.auth.getUser();
