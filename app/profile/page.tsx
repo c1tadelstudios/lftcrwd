@@ -553,7 +553,7 @@ export default function ProfilePage() {
       )}
 
       {/* Version */}
-      <p className="text-center text-[12px] text-white/20 pt-2 pb-4">v1.0.0</p>
+      <p className="text-center text-[12px] text-white/20 pt-2 pb-4">v1.0.1</p>
 
     </div>
   );
