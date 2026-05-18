@@ -144,9 +144,13 @@ export default function TodayDashboard() {
   const waterPct    = Math.min(100, (log.water_oz / GALLON_OZ) * 100);
   const workedOutToday = sessions.some(s => s.date === today());
 
+  const mealsDone = [log.meal_1_done, log.meal_2_done, log.meal_3_done, log.meal_4_done, log.meal_5_done].filter(Boolean).length;
+  const totalMeals = 5;
+
   const goals = [
     { label: 'Protein',  done: log.protein_g >= DAILY_TARGETS.proteinG },
     { label: 'Water',    done: log.water_oz >= GALLON_OZ },
+    { label: 'Meals',    done: mealsDone >= totalMeals },
     { label: 'Creatine', done: log.creatine },
     { label: 'Cardio',   done: log.cardio_done },
     { label: 'Workout',  done: workedOutToday },
@@ -267,7 +271,9 @@ export default function TodayDashboard() {
       {/* ── Meals quick link ───────────────────────────────────────────────── */}
       <Link href="/nutrition" className="flex items-center justify-between px-4 h-[54px] bg-[#111111] rounded-2xl active:bg-white/5 transition-colors">
         <span className="text-[17px] text-white">Meals</span>
-        <span className="text-[15px] text-white/30">View plan →</span>
+        <span className={`text-[15px] tabular-nums ${mealsDone >= totalMeals ? 'text-[#30d158] font-semibold' : 'text-white/30'}`}>
+          {mealsDone} / {totalMeals} →
+        </span>
       </Link>
 
       {/* ── Track section header ────────────────────────────────────────────── */}
