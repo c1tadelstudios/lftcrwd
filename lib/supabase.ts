@@ -158,13 +158,13 @@ export async function getMyWorkoutPlan(): Promise<string | null> {
 
   const { data } = await client
     .from('client_workout_plans')
-    .select('plan, user_plan, active_source')
+    .select('plan, content, user_plan, active_source')
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (!data) return null;
   if (data.active_source === 'user') return data.user_plan ?? null;
-  return data.plan ?? null;
+  return data.plan ?? data.content ?? null;
 }
 
 /** Gets the trainer-assigned meal plan for the current user. */
