@@ -10,20 +10,21 @@ async function getCurrentUserId(): Promise<string | null> {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { cookies: { getAll: () => cookieStore.getAll() } },
   );
-  const { data: { user } } = await client.auth.getUser();
-  return user?.id ?? null;
+  const { data: { session } } = await client.auth.getSession();
+  return session?.user?.id ?? null;
 }
 
 export async function GET() {
   const userId = await getCurrentUserId();
   if ( ! userId ) return NextResponse.json( { error: 'Unauthorized' }, { status: 401 } );
 
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from( 'client_meal_plans' )
     .select( 'plan, user_plan, active_source' )
     .eq( 'user_id', userId )
     .maybeSingle();
 
+  if ( error ) return NextResponse.json( { error: error.message }, { status: 500 } );
   if ( ! data ) return NextResponse.json( { plan: null } );
   const active = data.active_source === 'user'
     ? data.user_plan

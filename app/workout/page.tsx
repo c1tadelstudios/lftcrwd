@@ -34,12 +34,16 @@ function WorkoutContent() {
 
   async function savePlan() {
     setSaving(true);
-    await fetch('/api/workout-plan', {
+    const res = await fetch('/api/workout-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan: draft.trim() || null }),
     });
-    setCustomPlan(draft.trim() || null);
+    if (res.ok) {
+      const getRes = await fetch('/api/workout-plan');
+      const d = await getRes.json();
+      setCustomPlan(d.plan ?? null);
+    }
     setEditing(false);
     setSaving(false);
   }

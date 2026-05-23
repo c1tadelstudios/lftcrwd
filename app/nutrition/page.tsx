@@ -116,12 +116,16 @@ export default function NutritionPage() {
 
   async function savePlan() {
     setSaving(true);
-    await fetch('/api/meal-plan', {
+    const res = await fetch('/api/meal-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan: draft.trim() || null }),
     });
-    setCustomPlan(draft.trim() || null);
+    if (res.ok) {
+      const getRes = await fetch('/api/meal-plan');
+      const d = await getRes.json();
+      setCustomPlan(d.plan ?? null);
+    }
     setEditing(false);
     setSaving(false);
   }
