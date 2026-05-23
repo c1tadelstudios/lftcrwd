@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import {
-  supabase, getOrCreateDailyLog, today, getMyMealPlan,
+  supabase, getOrCreateDailyLog, today,
   getMealCalorieTargets, type DailyLog,
 } from '@/lib/supabase';
 import { NUTRITION } from '@/lib/plan';
@@ -110,7 +110,7 @@ export default function NutritionPage() {
 
   useEffect(() => {
     getOrCreateDailyLog(today()).then(setLog);
-    getMyMealPlan().then(setCustomPlan);
+    fetch('/api/meal-plan').then(r => r.json()).then(d => setCustomPlan(d.plan ?? null));
     getMealCalorieTargets().then(setCalories);
   }, []);
 

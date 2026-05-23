@@ -5,7 +5,6 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import { WORKOUT_PLAN } from '@/lib/plan';
-import { getMyWorkoutPlan } from '@/lib/supabase';
 import WorkoutLogger from '@/components/WorkoutLogger';
 
 const markdownComponents: Components = {
@@ -30,7 +29,7 @@ function WorkoutContent() {
   const [saving, setSaving]         = useState(false);
 
   useEffect(() => {
-    getMyWorkoutPlan().then(setCustomPlan);
+    fetch('/api/workout-plan').then(r => r.json()).then(d => setCustomPlan(d.plan ?? null));
   }, []);
 
   async function savePlan() {
