@@ -15,7 +15,10 @@ export async function middleware( request: NextRequest ) {
   }
 
   // ── All protected routes ───────────────────────────────────────────────────
-  const response = NextResponse.next();
+  const requestHeaders = new Headers( request.headers );
+  requestHeaders.delete( 'x-user-id' ); // strip any client-supplied value
+
+  const response = NextResponse.next( { request: { headers: requestHeaders } } );
   const supabase = createMiddlewareClient( request, response );
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -25,6 +28,9 @@ export async function middleware( request: NextRequest ) {
     }
     return NextResponse.redirect( new URL( '/login', request.url ) );
   }
+
+  // Stamp user ID so API routes don't need to re-parse cookies.
+  requestHeaders.set( 'x-user-id', session.user.id );
 
   // ── Archived user check ───────────────────────────────────────────────────
   if ( session.user?.email?.startsWith( '_archived' ) ) {
@@ -49,7 +55,7 @@ export async function middleware( request: NextRequest ) {
     }
   }
 
-  return response;
+  return NextResponse.next( { request: { headers: requestHeaders } } );
 }
 
 export const config = {
