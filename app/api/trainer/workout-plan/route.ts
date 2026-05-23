@@ -9,14 +9,14 @@ export async function GET( request: NextRequest ) {
 
   const { data } = await supabaseAdmin
     .from( 'client_workout_plans' )
-    .select( 'plan, content, user_plan, active_source' )
+    .select( 'plan, user_plan, active_source' )
     .eq( 'user_id', userId )
     .maybeSingle();
 
   return NextResponse.json( {
-    trainerPlan:  data?.plan ?? data?.content ?? null,
-    userPlan:     data?.user_plan              ?? null,
-    activeSource: data?.active_source          ?? 'trainer',
+    trainerPlan:  data?.plan          ?? null,
+    userPlan:     data?.user_plan     ?? null,
+    activeSource: data?.active_source ?? 'trainer',
   } );
 }
 
