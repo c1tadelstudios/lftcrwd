@@ -20,11 +20,15 @@ export async function GET() {
 
   const { data } = await supabaseAdmin
     .from( 'client_workout_plans' )
-    .select( 'user_plan' )
+    .select( 'plan, user_plan, active_source' )
     .eq( 'user_id', userId )
     .maybeSingle();
 
-  return NextResponse.json( { plan: data?.user_plan ?? null } );
+  if ( ! data ) return NextResponse.json( { plan: null } );
+  const active = data.active_source === 'user'
+    ? data.user_plan
+    : ( data.plan ?? data.user_plan );
+  return NextResponse.json( { plan: active ?? null } );
 }
 
 export async function POST( request: NextRequest ) {
@@ -41,7 +45,7 @@ export async function POST( request: NextRequest ) {
   const { error } = await supabaseAdmin
     .from( 'client_workout_plans' )
     .upsert(
-      { user_id: userId, user_plan: plan, updated_at: new Date().toISOString() },
+      { user_id: userId, user_plan: plan, active_source: 'user', updated_at: new Date().toISOString() },
       { onConflict: 'user_id' },
     );
 
