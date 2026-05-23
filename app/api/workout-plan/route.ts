@@ -20,11 +20,11 @@ export async function GET() {
 
   const { data } = await supabaseAdmin
     .from( 'client_workout_plans' )
-    .select( 'plan' )
+    .select( 'user_plan' )
     .eq( 'user_id', userId )
     .maybeSingle();
 
-  return NextResponse.json( { plan: data?.plan ?? null } );
+  return NextResponse.json( { plan: data?.user_plan ?? null } );
 }
 
 export async function POST( request: NextRequest ) {
@@ -41,7 +41,7 @@ export async function POST( request: NextRequest ) {
   const { error } = await supabaseAdmin
     .from( 'client_workout_plans' )
     .upsert(
-      { user_id: userId, plan, updated_at: new Date().toISOString() },
+      { user_id: userId, user_plan: plan, updated_at: new Date().toISOString() },
       { onConflict: 'user_id' },
     );
 

@@ -325,11 +325,14 @@ export default function ClientDetailPage() {
 
   // Workout plan editor state
   const [workoutPlan, setWorkoutPlan] = useState<string | null>(null);
+  const [userWorkoutPlan, setUserWorkoutPlan] = useState<string | null>(null);
+  const [activeSource, setActiveSource] = useState<'trainer' | 'user'>('trainer');
   const [workoutPlanLoading, setWorkoutPlanLoading] = useState(true);
   const [editingWorkout, setEditingWorkout] = useState(false);
   const [workoutEditorTab, setWorkoutEditorTab] = useState<'edit' | 'preview'>('edit');
   const [workoutDraft, setWorkoutDraft] = useState('');
   const [savingWorkout, setSavingWorkout] = useState(false);
+  const [togglingSource, setTogglingSource] = useState(false);
 
   // Meal calorie targets
   const [mealCalories, setMealCalories] = useState<Record<number, number>>({});
@@ -404,7 +407,9 @@ export default function ClientDetailPage() {
     const res = await fetch(`/api/trainer/workout-plan?userId=${userId}`);
     if (!res.ok) return;
     const data = await res.json();
-    setWorkoutPlan(data.content);
+    setWorkoutPlan(data.trainerPlan);
+    setUserWorkoutPlan(data.userPlan);
+    setActiveSource(data.activeSource ?? 'trainer');
     setWorkoutPlanLoading(false);
   }, [userId]);
 
@@ -413,7 +418,7 @@ export default function ClientDetailPage() {
     await fetch('/api/trainer/workout-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, content: workoutDraft.trim() || null }),
+      body: JSON.stringify({ userId, trainerPlan: workoutDraft.trim() || null }),
     });
     await fetchWorkoutPlan();
     setEditingWorkout(false);
@@ -421,14 +426,25 @@ export default function ClientDetailPage() {
   }
 
   async function resetWorkoutToDefault() {
-    if (!confirm('Remove custom workout plan and revert to default for this client?')) return;
+    if (!confirm('Remove your plan for this client?')) return;
     await fetch('/api/trainer/workout-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, content: null }),
+      body: JSON.stringify({ userId, trainerPlan: null }),
     });
     await fetchWorkoutPlan();
     setEditingWorkout(false);
+  }
+
+  async function toggleActiveSource( source: 'trainer' | 'user' ) {
+    setTogglingSource(true);
+    setActiveSource(source);
+    await fetch('/api/trainer/workout-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, activeSource: source }),
+    });
+    setTogglingSource(false);
   }
 
   async function sendReply(e: React.FormEvent) {
@@ -1170,33 +1186,59 @@ export default function ClientDetailPage() {
         {/* Workout Plan */}
         <div className="bg-[#111111] rounded-2xl p-4 mb-6">
           <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-2">
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-white/45">Workout Plan</h2>
-              {!workoutPlanLoading && (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${workoutPlan ? 'bg-orange-900/50 text-orange-400' : 'bg-white/10 text-white/30'}`}>
-                  {workoutPlan ? 'custom' : 'default'}
-                </span>
-              )}
-            </div>
-            {!editingWorkout && (
+            <h2 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-white/45">Workout Plan</h2>
+            {!editingWorkout && workoutPlan && (
               <div className="flex gap-2">
-                {workoutPlan && (
-                  <button
-                    onClick={resetWorkoutToDefault}
-                    className="text-xs text-white/30 hover:text-red-400 transition-colors"
-                  >
-                    Reset to default
-                  </button>
-                )}
+                <button
+                  onClick={resetWorkoutToDefault}
+                  className="text-xs text-white/30 hover:text-red-400 transition-colors"
+                >
+                  Remove
+                </button>
                 <button
                   onClick={() => { setWorkoutDraft(workoutPlan ?? ''); setWorkoutEditorTab('edit'); setEditingWorkout(true); }}
                   className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
                 >
-                  {workoutPlan ? 'Edit plan' : 'Create custom plan'}
+                  Edit
                 </button>
               </div>
             )}
+            {!editingWorkout && !workoutPlan && (
+              <button
+                onClick={() => { setWorkoutDraft(''); setWorkoutEditorTab('edit'); setEditingWorkout(true); }}
+                className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
+              >
+                Create plan
+              </button>
+            )}
           </div>
+
+          {/* Active source toggle — only show when both plans exist */}
+          {!workoutPlanLoading && workoutPlan && userWorkoutPlan && !editingWorkout && (
+            <div className="flex gap-1 mb-4 bg-black/60 rounded-lg p-1">
+              <button
+                onClick={() => toggleActiveSource('trainer')}
+                disabled={togglingSource}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${activeSource === 'trainer' ? 'bg-orange-500/80 text-white' : 'text-white/30 hover:text-white/60'}`}
+              >
+                Trainer&apos;s Plan
+              </button>
+              <button
+                onClick={() => toggleActiveSource('user')}
+                disabled={togglingSource}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${activeSource === 'user' ? 'bg-orange-500/80 text-white' : 'text-white/30 hover:text-white/60'}`}
+              >
+                Their Plan
+              </button>
+            </div>
+          )}
+
+          {/* Active source label — only one plan exists */}
+          {!workoutPlanLoading && !editingWorkout && ( workoutPlan || userWorkoutPlan ) && ! ( workoutPlan && userWorkoutPlan ) && (
+            <p className="text-[11px] text-white/25 mb-3 uppercase tracking-wider">
+              {userWorkoutPlan && !workoutPlan ? 'Using their plan' : 'Using trainer\'s plan'}
+            </p>
+          )}
 
           {editingWorkout ? (
             <div>
@@ -1266,23 +1308,28 @@ export default function ClientDetailPage() {
             <div>
               {workoutPlanLoading ? (
                 <div className="animate-pulse h-16 bg-white/10 rounded-xl" />
-              ) : workoutPlan ? (
-                <ReactMarkdown
-                  components={{
-                    h1: ({ children }) => <h1 className="text-base font-bold text-white mb-2 mt-4 first:mt-0">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-sm font-bold text-white mb-1.5 mt-3 first:mt-0">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-sm font-semibold text-white/80 mb-1 mt-2">{children}</h3>,
-                    p: ({ children }) => <p className="text-sm text-white/70 mb-2">{children}</p>,
-                    ul: ({ children }) => <ul className="space-y-0.5 mb-2 ml-1">{children}</ul>,
-                    li: ({ children }) => <li className="text-sm text-white/70 flex gap-2"><span className="text-white/20 mt-0.5 flex-shrink-0">·</span><span>{children}</span></li>,
-                    strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
-                    hr: () => <hr className="border-white/10 my-3" />,
-                  }}
-                >
-                  {workoutPlan}
-                </ReactMarkdown>
               ) : (
-                <p className="text-sm text-white/30">Using the default plan. Create a custom plan to override.</p>
+                (() => {
+                  const displayed = activeSource === 'user' ? userWorkoutPlan : workoutPlan;
+                  return displayed ? (
+                    <ReactMarkdown
+                      components={{
+                        h1: ({ children }) => <h1 className="text-base font-bold text-white mb-2 mt-4 first:mt-0">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-sm font-bold text-white mb-1.5 mt-3 first:mt-0">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-semibold text-white/80 mb-1 mt-2">{children}</h3>,
+                        p: ({ children }) => <p className="text-sm text-white/70 mb-2">{children}</p>,
+                        ul: ({ children }) => <ul className="space-y-0.5 mb-2 ml-1">{children}</ul>,
+                        li: ({ children }) => <li className="text-sm text-white/70 flex gap-2"><span className="text-white/20 mt-0.5 flex-shrink-0">·</span><span>{children}</span></li>,
+                        strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+                        hr: () => <hr className="border-white/10 my-3" />,
+                      }}
+                    >
+                      {displayed}
+                    </ReactMarkdown>
+                  ) : (
+                    <p className="text-sm text-white/30">No plan assigned yet. Create one above.</p>
+                  );
+                })()
               )}
             </div>
           )}
