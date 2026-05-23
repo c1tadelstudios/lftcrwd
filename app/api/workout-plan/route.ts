@@ -7,7 +7,7 @@ export async function GET( request: NextRequest ) {
 
   const { data, error } = await supabaseAdmin
     .from( 'client_workout_plans' )
-    .select( 'plan, user_plan, active_source' )
+    .select( 'content, user_plan, active_source' )
     .eq( 'user_id', userId )
     .maybeSingle();
 
@@ -15,7 +15,7 @@ export async function GET( request: NextRequest ) {
   if ( ! data ) return NextResponse.json( { plan: null } );
   const active = data.active_source === 'user'
     ? data.user_plan
-    : ( data.plan ?? data.user_plan );
+    : ( data.content ?? data.user_plan );
   return NextResponse.json( { plan: active ?? null } );
 }
 
@@ -33,7 +33,7 @@ export async function POST( request: NextRequest ) {
   const { error } = await supabaseAdmin
     .from( 'client_workout_plans' )
     .upsert(
-      { user_id: userId, content: plan, user_plan: plan, active_source: 'user', updated_at: new Date().toISOString() },
+      { user_id: userId, content: plan ?? '', user_plan: plan, active_source: 'user', updated_at: new Date().toISOString() },
       { onConflict: 'user_id' },
     );
 

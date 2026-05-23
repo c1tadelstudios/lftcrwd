@@ -9,14 +9,14 @@ export async function GET( request: NextRequest ) {
 
   const { data } = await supabaseAdmin
     .from( 'client_workout_plans' )
-    .select( 'plan, user_plan, active_source' )
+    .select( 'content, user_plan, active_source' )
     .eq( 'user_id', userId )
     .maybeSingle();
 
   return NextResponse.json( {
-    trainerPlan:  data?.plan          ?? null,
-    userPlan:     data?.user_plan     ?? null,
-    activeSource: data?.active_source ?? 'trainer',
+    trainerPlan:  data?.content        ?? null,
+    userPlan:     data?.user_plan      ?? null,
+    activeSource: data?.active_source  ?? 'trainer',
   } );
 }
 
@@ -40,20 +40,10 @@ export async function POST( request: NextRequest ) {
   // Save trainer plan
   const trainerPlan = body.trainerPlan ?? null;
 
-  if ( trainerPlan === null ) {
-    await supabaseAdmin
-      .from( 'client_workout_plans' )
-      .upsert(
-        { user_id: userId, plan: null, updated_at: new Date().toISOString() },
-        { onConflict: 'user_id' },
-      );
-    return NextResponse.json( { ok: true } );
-  }
-
   const { error } = await supabaseAdmin
     .from( 'client_workout_plans' )
     .upsert(
-      { user_id: userId, plan: trainerPlan, updated_at: new Date().toISOString() },
+      { user_id: userId, content: trainerPlan, updated_at: new Date().toISOString() },
       { onConflict: 'user_id' },
     );
 

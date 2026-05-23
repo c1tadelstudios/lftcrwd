@@ -121,14 +121,10 @@ export default function NutritionPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan: draft.trim() || null }),
     });
-    const postData = await res.json().catch(() => ({}));
     if (res.ok) {
       const getRes = await fetch('/api/meal-plan');
-      const getData = await getRes.json();
-      alert('POST ok. GET returned: ' + JSON.stringify(getData));
-      setCustomPlan(getData.plan ?? null);
-    } else {
-      alert('Save failed (' + res.status + '): ' + JSON.stringify(postData));
+      const d = await getRes.json();
+      setCustomPlan(d.plan ?? null);
     }
     setEditing(false);
     setSaving(false);
