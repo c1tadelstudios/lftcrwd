@@ -4,26 +4,6 @@ import { createMiddlewareClient } from '@/lib/supabase-server';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ── Trainer routes — protected by Supabase session + admin flag ──────────
-  if (pathname.startsWith('/trainer') || pathname.startsWith('/api/trainer') || pathname.startsWith('/api/feedback')) {
-    const response = NextResponse.next();
-    const supabase = createMiddlewareClient(request, response);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const isAdmin =
-      user?.user_metadata?.is_admin === true ||
-      user?.app_metadata?.is_admin === true;
-
-    if (!isAdmin) {
-      if (pathname.startsWith('/api/trainer')) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    return response;
-  }
-
   // ── Public routes ─────────────────────────────────────────────────────────
   if (
     pathname.startsWith('/login') ||
@@ -34,20 +14,35 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-
-  // ── User routes — protected by Supabase session ───────────────────────────
+  // ── All protected routes — read session from JWT (no network call) ─────────
   const response = NextResponse.next();
   const supabase = createMiddlewareClient(request, response);
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
+    if (pathname.startsWith('/api/trainer')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // ── Archived user check — use getUser() for live email, not cached JWT ────
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user?.email?.startsWith('_archived')) {
+  // ── Archived user check — email is in the JWT, no extra network call ───────
+  if (session.user?.email?.startsWith('_archived')) {
     return NextResponse.redirect(new URL('/api/auth/signout', request.url));
+  }
+
+  // ── Trainer routes — check admin flag from JWT metadata ───────────────────
+  if (pathname.startsWith('/trainer') || pathname.startsWith('/api/trainer') || pathname.startsWith('/api/feedback')) {
+    const isAdmin =
+      session.user?.user_metadata?.is_admin === true ||
+      session.user?.app_metadata?.is_admin === true;
+
+    if (!isAdmin) {
+      if (pathname.startsWith('/api/trainer')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
   return response;
