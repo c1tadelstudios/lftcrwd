@@ -28,7 +28,7 @@ export async function POST( request: NextRequest ) {
   const { error } = await supabaseAdmin
     .from( 'client_meal_plans' )
     .upsert(
-      { user_id: userId, user_plan: plan ?? null, active_source: plan ? 'user' : 'trainer', updated_at: new Date().toISOString() },
+      { user_id: userId, content: plan ?? '', user_plan: plan ?? null, active_source: plan ? 'user' : 'trainer', updated_at: new Date().toISOString() },
       { onConflict: 'user_id' },
     );
 

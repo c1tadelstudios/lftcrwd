@@ -33,7 +33,7 @@ export async function POST( request: NextRequest ) {
   const { error } = await supabaseAdmin
     .from( 'client_workout_plans' )
     .upsert(
-      { user_id: userId, user_plan: plan, active_source: 'user', updated_at: new Date().toISOString() },
+      { user_id: userId, content: plan, user_plan: plan, active_source: 'user', updated_at: new Date().toISOString() },
       { onConflict: 'user_id' },
     );
 
