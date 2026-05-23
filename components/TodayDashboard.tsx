@@ -50,20 +50,30 @@ function Toggle({ value, onChange }: { value: boolean; onChange: () => void }) {
   );
 }
 
+function countMealSections(plan: string): number {
+  return plan.split('\n').filter(l => /^#{1,2}\s/.test(l)).length;
+}
+
 export default function TodayDashboard() {
   const [log, setLog] = useState<DailyLog | null>(null);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [showAllDays, setShowAllDays] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [customMealCount, setCustomMealCount] = useState<number | null>(null);
 
   useEffect(() => {
     async function load() {
-      const [l, s] = await Promise.all([
+      const [l, s, mealRes] = await Promise.all([
         getOrCreateDailyLog(today()),
         getRecentSessions(10),
+        fetch('/api/meal-plan').then(r => r.json()),
       ]);
       setLog(l);
       setSessions(s);
+      if (mealRes.plan) {
+        const count = countMealSections(mealRes.plan);
+        if (count > 0) setCustomMealCount(count);
+      }
       setLoading(false);
     }
     load();
@@ -144,8 +154,10 @@ export default function TodayDashboard() {
   const waterPct    = Math.min(100, (log.water_oz / GALLON_OZ) * 100);
   const workedOutToday = sessions.some(s => s.date === today());
 
-  const mealsDone = [log.meal_1_done, log.meal_2_done, log.meal_3_done, log.meal_4_done, log.meal_5_done].filter(Boolean).length;
-  const totalMeals = 5;
+  const totalMeals = customMealCount ?? 5;
+  const mealsDone = customMealCount !== null
+    ? Object.values(log.custom_meals_done ?? {}).filter(Boolean).length
+    : [log.meal_1_done, log.meal_2_done, log.meal_3_done, log.meal_4_done, log.meal_5_done].filter(Boolean).length;
 
   const goals = [
     { label: 'Protein',  done: log.protein_g >= DAILY_TARGETS.proteinG },
