@@ -175,11 +175,13 @@ export async function getMyMealPlan(): Promise<string | null> {
 
   const { data } = await client
     .from('client_meal_plans')
-    .select('plan')
+    .select('plan, user_plan, active_source')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
-  return data?.plan ?? null;
+  if (!data) return null;
+  if (data.active_source === 'user') return data.user_plan ?? null;
+  return data.plan ?? null;
 }
 
 /** Gets meal calorie targets for the current user. */

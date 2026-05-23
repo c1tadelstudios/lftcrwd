@@ -317,11 +317,14 @@ export default function ClientDetailPage() {
 
   // Meal plan editor state
   const [mealPlan, setMealPlan] = useState<string | null>(null);
+  const [userMealPlan, setUserMealPlan] = useState<string | null>(null);
+  const [mealActiveSource, setMealActiveSource] = useState<'trainer' | 'user'>('trainer');
   const [mealPlanLoading, setMealPlanLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editorTab, setEditorTab] = useState<'edit' | 'preview'>('edit');
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [togglingMealSource, setTogglingMealSource] = useState(false);
 
   // Workout plan editor state
   const [workoutPlan, setWorkoutPlan] = useState<string | null>(null);
@@ -358,7 +361,9 @@ export default function ClientDetailPage() {
     const res = await fetch(`/api/trainer/meal-plan?userId=${userId}`);
     if (!res.ok) return;
     const data = await res.json();
-    setMealPlan(data.content);
+    setMealPlan(data.trainerPlan);
+    setUserMealPlan(data.userPlan);
+    setMealActiveSource(data.activeSource ?? 'trainer');
     setMealPlanLoading(false);
   }, [userId]);
 
@@ -384,7 +389,7 @@ export default function ClientDetailPage() {
     await fetch('/api/trainer/meal-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, content: draft.trim() || null }),
+      body: JSON.stringify({ userId, trainerPlan: draft.trim() || null }),
     });
     await fetchMealPlan();
     setEditing(false);
@@ -392,14 +397,25 @@ export default function ClientDetailPage() {
   }
 
   async function resetToDefault() {
-    if (!confirm('Remove custom plan and revert to default for this client?')) return;
+    if (!confirm('Remove your meal plan for this client?')) return;
     await fetch('/api/trainer/meal-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, content: null }),
+      body: JSON.stringify({ userId, trainerPlan: null }),
     });
     await fetchMealPlan();
     setEditing(false);
+  }
+
+  async function toggleMealActiveSource( source: 'trainer' | 'user' ) {
+    setTogglingMealSource(true);
+    setMealActiveSource(source);
+    await fetch('/api/trainer/meal-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, activeSource: source }),
+    });
+    setTogglingMealSource(false);
   }
 
   const fetchWorkoutPlan = useCallback(async () => {
@@ -1022,33 +1038,41 @@ export default function ClientDetailPage() {
         {/* Meal Plan */}
         <div className="bg-[#111111] rounded-2xl p-4 mb-6">
           <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-2">
-              <h2 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-white/45">Meal Plan</h2>
-              {!mealPlanLoading && (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${mealPlan ? 'bg-orange-900/50 text-orange-400' : 'bg-white/10 text-white/30'}`}>
-                  {mealPlan ? 'custom' : 'default'}
-                </span>
-              )}
-            </div>
-            {!editing && (
+            <h2 className="text-[13px] font-semibold uppercase tracking-[0.06em] text-white/45">Meal Plan</h2>
+            {!editing && mealPlan && (
               <div className="flex gap-2">
-                {mealPlan && (
-                  <button
-                    onClick={resetToDefault}
-                    className="text-xs text-white/30 hover:text-red-400 transition-colors"
-                  >
-                    Reset to default
-                  </button>
-                )}
-                <button
-                  onClick={() => { setDraft(mealPlan ?? ''); setEditorTab('edit'); setEditing(true); }}
-                  className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
-                >
-                  {mealPlan ? 'Edit plan' : 'Create custom plan'}
-                </button>
+                <button onClick={resetToDefault} className="text-xs text-white/30 hover:text-red-400 transition-colors">Remove</button>
+                <button onClick={() => { setDraft(mealPlan ?? ''); setEditorTab('edit'); setEditing(true); }} className="text-xs text-orange-400 hover:text-orange-300 transition-colors">Edit</button>
               </div>
             )}
+            {!editing && !mealPlan && (
+              <button onClick={() => { setDraft(''); setEditorTab('edit'); setEditing(true); }} className="text-xs text-orange-400 hover:text-orange-300 transition-colors">Create plan</button>
+            )}
           </div>
+
+          {/* Active source toggle — show whenever trainer plan exists */}
+          {!mealPlanLoading && mealPlan && !editing && (
+            <div className="flex gap-1 mb-4 bg-black/60 rounded-lg p-1">
+              <button
+                onClick={() => toggleMealActiveSource('trainer')}
+                disabled={togglingMealSource}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${mealActiveSource === 'trainer' ? 'bg-orange-500/80 text-white' : 'text-white/30 hover:text-white/60'}`}
+              >
+                Trainer&apos;s Plan
+              </button>
+              <button
+                onClick={() => toggleMealActiveSource('user')}
+                disabled={togglingMealSource || !userMealPlan}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${mealActiveSource === 'user' ? 'bg-orange-500/80 text-white' : !userMealPlan ? 'text-white/15 cursor-not-allowed' : 'text-white/30 hover:text-white/60'}`}
+              >
+                Their Plan{!userMealPlan && <span className="ml-1 opacity-50">(none yet)</span>}
+              </button>
+            </div>
+          )}
+
+          {!mealPlanLoading && !editing && !mealPlan && userMealPlan && (
+            <p className="text-[11px] text-white/25 mb-3 uppercase tracking-wider">Using their plan</p>
+          )}
 
           {editing ? (
             <div>
@@ -1119,23 +1143,28 @@ export default function ClientDetailPage() {
             <div>
               {mealPlanLoading ? (
                 <div className="animate-pulse h-16 bg-white/10 rounded-xl" />
-              ) : mealPlan ? (
-                <ReactMarkdown
-                  components={{
-                    h1: ({ children }) => <h1 className="text-base font-bold text-white mb-2 mt-4 first:mt-0">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-sm font-bold text-white mb-1.5 mt-3 first:mt-0">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-sm font-semibold text-white/80 mb-1 mt-2">{children}</h3>,
-                    p: ({ children }) => <p className="text-sm text-white/70 mb-2">{children}</p>,
-                    ul: ({ children }) => <ul className="space-y-0.5 mb-2 ml-1">{children}</ul>,
-                    li: ({ children }) => <li className="text-sm text-white/70 flex gap-2"><span className="text-white/20 mt-0.5 flex-shrink-0">·</span><span>{children}</span></li>,
-                    strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
-                    hr: () => <hr className="border-white/10 my-3" />,
-                  }}
-                >
-                  {mealPlan}
-                </ReactMarkdown>
               ) : (
-                <p className="text-sm text-white/30">Using the default plan. Create a custom plan to override.</p>
+                (() => {
+                  const displayed = mealActiveSource === 'user' ? userMealPlan : mealPlan;
+                  return displayed ? (
+                    <ReactMarkdown
+                      components={{
+                        h1: ({ children }) => <h1 className="text-base font-bold text-white mb-2 mt-4 first:mt-0">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-sm font-bold text-white mb-1.5 mt-3 first:mt-0">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-semibold text-white/80 mb-1 mt-2">{children}</h3>,
+                        p: ({ children }) => <p className="text-sm text-white/70 mb-2">{children}</p>,
+                        ul: ({ children }) => <ul className="space-y-0.5 mb-2 ml-1">{children}</ul>,
+                        li: ({ children }) => <li className="text-sm text-white/70 flex gap-2"><span className="text-white/20 mt-0.5 flex-shrink-0">·</span><span>{children}</span></li>,
+                        strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+                        hr: () => <hr className="border-white/10 my-3" />,
+                      }}
+                    >
+                      {displayed}
+                    </ReactMarkdown>
+                  ) : (
+                    <p className="text-sm text-white/30">No plan assigned yet. Create one above.</p>
+                  );
+                })()
               )}
             </div>
           )}

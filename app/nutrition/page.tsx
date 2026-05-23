@@ -71,12 +71,32 @@ export default function NutritionPage() {
   const [log, setLog]               = useState<DailyLog | null>(null);
   const [customPlan, setCustomPlan] = useState<string | null | undefined>(undefined);
   const [calories, setCalories]     = useState<Record<number, number>>({});
+  const [editing, setEditing]       = useState(false);
+  const [draft, setDraft]           = useState('');
+  const [saving, setSaving]         = useState(false);
 
   useEffect(() => {
     getOrCreateDailyLog(today()).then(setLog);
     getMyMealPlan().then(setCustomPlan);
     getMealCalorieTargets().then(setCalories);
   }, []);
+
+  async function savePlan() {
+    setSaving(true);
+    await fetch('/api/meal-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: draft.trim() || null }),
+    });
+    setCustomPlan(draft.trim() || null);
+    setEditing(false);
+    setSaving(false);
+  }
+
+  function openEditor() {
+    setDraft(customPlan ?? '');
+    setEditing(true);
+  }
 
   async function toggleMeal(field: MealField, current: boolean) {
     if (!log) return;
@@ -179,7 +199,36 @@ export default function NutritionPage() {
 
         {/* ── Right: meals ────────────────────────────────────────────────────── */}
         <div className="order-1 md:order-2 space-y-3">
-          <p className="text-[13px] font-semibold uppercase tracking-[0.06em] text-white/45 mb-2 px-1">Meals</p>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.06em] text-white/45">Meals</p>
+            {customPlan !== undefined && !editing && (
+              <button onClick={openEditor} className="text-[13px] text-white/40 hover:text-white/70 transition-colors">
+                {customPlan ? 'Edit' : '+ Add your plan'}
+              </button>
+            )}
+          </div>
+
+          {editing && (
+            <div className="bg-[#111111] rounded-2xl p-4 mb-1">
+              <textarea
+                className="w-full bg-[#1c1c1c] text-[15px] text-white/80 rounded-xl p-3 min-h-[180px] resize-y border border-white/10 focus:outline-none focus:border-white/25 font-mono leading-relaxed"
+                placeholder={"## Meal 1 — Breakfast\n- 6 egg whites\n- 1 cup oats\n\n## Meal 2 — Lunch\n- Chicken breast\n- Rice"}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                autoFocus
+              />
+              <p className="text-[11px] text-white/25 mt-2 mb-3">Use ## headings for meal names so they appear as trackable cards.</p>
+              <div className="flex gap-2">
+                <button onClick={savePlan} disabled={saving} className="flex-1 bg-[#30d158] text-black text-[15px] font-semibold rounded-xl py-3 disabled:opacity-50">
+                  {saving ? 'Saving…' : 'Save plan'}
+                </button>
+                <button onClick={() => setEditing(false)} className="px-5 bg-white/10 text-white/60 text-[15px] font-semibold rounded-xl py-3">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           {customPlan === undefined ? (
             [...Array(4)].map((_, i) => <div key={i} className="animate-pulse h-[60px] bg-[#111111] rounded-2xl" />)
           ) : customPlan && customSections.length > 0 ? (

@@ -3,33 +3,50 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 
 // Auth checked by middleware — only trainer can reach these routes.
 
-export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get('userId');
-  if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+export async function GET( request: NextRequest ) {
+  const userId = request.nextUrl.searchParams.get( 'userId' );
+  if ( ! userId ) return NextResponse.json( { error: 'userId required' }, { status: 400 } );
 
   const { data } = await supabaseAdmin
-    .from('client_meal_plans')
-    .select('content')
-    .eq('user_id', userId)
+    .from( 'client_meal_plans' )
+    .select( 'plan, user_plan, active_source' )
+    .eq( 'user_id', userId )
     .maybeSingle();
 
-  return NextResponse.json({ content: data?.content ?? null });
+  return NextResponse.json( {
+    trainerPlan:  data?.plan          ?? null,
+    userPlan:     data?.user_plan     ?? null,
+    activeSource: data?.active_source ?? 'trainer',
+  } );
 }
 
-export async function POST(request: NextRequest) {
-  const { userId, content } = await request.json();
-  if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+export async function POST( request: NextRequest ) {
+  const body = await request.json();
+  const { userId } = body;
+  if ( ! userId ) return NextResponse.json( { error: 'userId required' }, { status: 400 } );
 
-  if (content === null) {
-    // Delete the custom plan — client falls back to default
-    await supabaseAdmin.from('client_meal_plans').delete().eq('user_id', userId);
-    return NextResponse.json({ ok: true });
+  // Toggle active source
+  if ( 'activeSource' in body ) {
+    const { error } = await supabaseAdmin
+      .from( 'client_meal_plans' )
+      .upsert(
+        { user_id: userId, active_source: body.activeSource, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' },
+      );
+    if ( error ) return NextResponse.json( { error: error.message }, { status: 500 } );
+    return NextResponse.json( { ok: true } );
   }
 
-  const { error } = await supabaseAdmin
-    .from('client_meal_plans')
-    .upsert({ user_id: userId, content, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  // Save trainer plan
+  const trainerPlan = body.trainerPlan ?? null;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+  const { error } = await supabaseAdmin
+    .from( 'client_meal_plans' )
+    .upsert(
+      { user_id: userId, plan: trainerPlan, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    );
+
+  if ( error ) return NextResponse.json( { error: error.message }, { status: 500 } );
+  return NextResponse.json( { ok: true } );
 }
