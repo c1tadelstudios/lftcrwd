@@ -164,7 +164,7 @@ export async function getMyWorkoutPlan(): Promise<string | null> {
 
   if (!data) return null;
   if (data.active_source === 'user') return data.user_plan ?? null;
-  return data.plan ?? null;
+  return data.plan ?? data.user_plan ?? null;
 }
 
 /** Gets the trainer-assigned meal plan for the current user. */
@@ -181,7 +181,7 @@ export async function getMyMealPlan(): Promise<string | null> {
 
   if (!data) return null;
   if (data.active_source === 'user') return data.user_plan ?? null;
-  return data.plan ?? null;
+  return data.plan ?? data.user_plan ?? null;
 }
 
 /** Gets meal calorie targets for the current user. */
