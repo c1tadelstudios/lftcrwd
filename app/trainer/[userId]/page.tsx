@@ -1213,8 +1213,8 @@ export default function ClientDetailPage() {
             )}
           </div>
 
-          {/* Active source toggle — only show when both plans exist */}
-          {!workoutPlanLoading && workoutPlan && userWorkoutPlan && !editingWorkout && (
+          {/* Active source toggle — show whenever there is a trainer plan */}
+          {!workoutPlanLoading && workoutPlan && !editingWorkout && (
             <div className="flex gap-1 mb-4 bg-black/60 rounded-lg p-1">
               <button
                 onClick={() => toggleActiveSource('trainer')}
@@ -1225,16 +1225,16 @@ export default function ClientDetailPage() {
               </button>
               <button
                 onClick={() => toggleActiveSource('user')}
-                disabled={togglingSource}
-                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${activeSource === 'user' ? 'bg-orange-500/80 text-white' : 'text-white/30 hover:text-white/60'}`}
+                disabled={togglingSource || !userWorkoutPlan}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${activeSource === 'user' ? 'bg-orange-500/80 text-white' : !userWorkoutPlan ? 'text-white/15 cursor-not-allowed' : 'text-white/30 hover:text-white/60'}`}
               >
-                Their Plan
+                Their Plan{!userWorkoutPlan && <span className="ml-1 opacity-50">(none yet)</span>}
               </button>
             </div>
           )}
 
-          {/* Active source label — only one plan exists */}
-          {!workoutPlanLoading && !editingWorkout && ( workoutPlan || userWorkoutPlan ) && ! ( workoutPlan && userWorkoutPlan ) && (
+          {/* Active source label — only a user plan exists, no trainer plan */}
+          {!workoutPlanLoading && !editingWorkout && !workoutPlan && userWorkoutPlan && (
             <p className="text-[11px] text-white/25 mb-3 uppercase tracking-wider">
               {userWorkoutPlan && !workoutPlan ? 'Using their plan' : 'Using trainer\'s plan'}
             </p>
