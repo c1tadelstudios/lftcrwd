@@ -4,6 +4,12 @@ All notable changes to lftcrwd — the coaching platform for online coaches and 
 
 ---
 
+## v1.0.2 — 2026-05-23
+
+- Bump: redeploy to restore service
+
+---
+
 ## v1.0.1 — 2026-05-10
 
 - Fix: message notification dot no longer persists after visiting the Messages page (race condition between Nav's checkUnread and the localStorage lastSeen timestamp)
