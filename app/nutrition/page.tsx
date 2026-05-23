@@ -43,15 +43,48 @@ function MealToggle({ value, onChange }: { value: boolean; onChange: () => void 
   );
 }
 
-function MealCard({ title, body, done, calories, onToggle }: {
-  title: string; body?: React.ReactNode; done: boolean; calories: number; onToggle: () => void;
+function MealCard({ title, body, done, calories, onToggle, onCaloriesChange }: {
+  title: string; body?: React.ReactNode; done: boolean; calories: number;
+  onToggle: () => void; onCaloriesChange: (cal: number) => void;
 }) {
+  const [editingCal, setEditingCal] = useState(false);
+  const [calDraft, setCalDraft]     = useState('');
+
+  function openCalEdit(e: React.MouseEvent) {
+    e.stopPropagation();
+    setCalDraft(String(calories || ''));
+    setEditingCal(true);
+  }
+
+  function commitCal() {
+    const val = parseInt(calDraft, 10);
+    if (!isNaN(val) && val > 0) onCaloriesChange(val);
+    setEditingCal(false);
+  }
+
   return (
     <div className={`bg-[#111111] rounded-2xl overflow-hidden transition-opacity ${done ? 'opacity-70' : ''}`}>
       <div className={`flex items-center gap-3 px-4 min-h-[60px] py-3 ${done ? 'bg-[#30d158]/8' : ''}`}>
         <div className="flex-1 min-w-0">
           <h3 className={`text-[17px] font-semibold ${done ? 'line-through text-white/40' : 'text-white'}`}>{title}</h3>
-          {calories > 0 && <p className="text-[13px] text-white/45 mt-0.5">{calories} kcal</p>}
+          {editingCal ? (
+            <div className="flex items-center gap-1 mt-0.5" onClick={e => e.stopPropagation()}>
+              <input
+                type="number"
+                value={calDraft}
+                onChange={e => setCalDraft(e.target.value)}
+                onBlur={commitCal}
+                onKeyDown={e => { if (e.key === 'Enter') commitCal(); if (e.key === 'Escape') setEditingCal(false); }}
+                className="w-20 bg-white/10 text-white text-[13px] rounded-md px-2 py-0.5 outline-none border border-white/20 focus:border-white/40"
+                autoFocus
+              />
+              <span className="text-[13px] text-white/45">kcal</span>
+            </div>
+          ) : (
+            <button onClick={openCalEdit} className="text-[13px] text-white/45 mt-0.5 hover:text-white/70 transition-colors text-left">
+              {calories > 0 ? `${calories} kcal` : '+ add calories'}
+            </button>
+          )}
         </div>
         <MealToggle value={done} onChange={onToggle} />
       </div>
@@ -102,6 +135,15 @@ export default function NutritionPage() {
     if (!log) return;
     setLog({ ...log, [field]: !current });
     await supabase.from('daily_logs').update({ [field]: !current }).eq('id', log.id);
+  }
+
+  async function saveCalorie(mealIndex: number, cal: number) {
+    setCalories(prev => ({ ...prev, [mealIndex]: cal }));
+    await fetch('/api/meal-calories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mealIndex, calories: cal }),
+    });
   }
 
   async function toggleCustomMeal(index: number, current: boolean) {
@@ -237,6 +279,7 @@ export default function NutritionPage() {
               return (
                 <MealCard key={i} title={section.title} done={done} calories={calForMeal(i)}
                   onToggle={() => toggleCustomMeal(i, done)}
+                  onCaloriesChange={cal => saveCalorie(i, cal)}
                   body={section.body ? <ReactMarkdown components={mdComponents}>{section.body}</ReactMarkdown> : undefined}
                 />
               );
@@ -257,6 +300,7 @@ export default function NutritionPage() {
               return (
                 <MealCard key={meal.name} title={meal.name} done={done} calories={calForMeal(i)}
                   onToggle={() => toggleMeal(field, done)}
+                  onCaloriesChange={cal => saveCalorie(i, cal)}
                   body={
                     <ul className="space-y-1.5">
                       {meal.items.map(item => (
