@@ -46,8 +46,8 @@ export default function LoginPage() {
           <p className="text-[13px] font-semibold uppercase tracking-[0.1em] text-white/25 mb-3">lftcrwd</p>
           {step === 'email' ? (
             <>
-              <h1 className="text-[34px] font-bold leading-[41px] text-white mb-3">Find your crew.</h1>
-              <p className="text-[17px] text-white/45">Sign in to start matching with nearby lifters.</p>
+              <h1 className="text-[34px] font-bold leading-[41px] text-white mb-3">Welcome back.</h1>
+              <p className="text-[17px] text-white/45">Sign in to your account.</p>
             </>
           ) : (
             <>
