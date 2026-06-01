@@ -427,6 +427,20 @@ export default function TodayDashboard() {
                     })}
                   </div>
                 )}
+
+                {/* Listening to */}
+                <div className="mx-4 mb-4 bg-black/30 rounded-xl overflow-hidden">
+                  <div className="flex items-center px-4 h-[50px]">
+                    <span className="flex-1 text-[15px] text-white/60">Listening to</span>
+                    <input
+                      type="text"
+                      value={log.cardio_listening ?? ''}
+                      onChange={e => update({ cardio_listening: e.target.value || null })}
+                      placeholder="Podcast, album, playlist…"
+                      className="w-40 bg-transparent text-right text-[15px] text-white outline-none placeholder:text-white/20 truncate"
+                    />
+                  </div>
+                </div>
               </>
             )}
           </div>

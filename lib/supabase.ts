@@ -51,6 +51,7 @@ export type DailyLog = {
   cardio_done: boolean;
   cardio_type: string | null;
   cardio_details: Record<string, number | string | null> | null;
+  cardio_listening: string | null;
   steps: number | null;
   weight_lbs: number | null;
   meal_1_done: boolean;
