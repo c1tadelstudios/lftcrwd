@@ -2,12 +2,29 @@
 
 A coaching platform built for personal trainers and their clients. Coaches manage programs, track compliance, and communicate. Clients log workouts, meals, and progress.
 
-**Live:** [app.lftcrwd.com](https://app.lftcrwd.com)
+**App:** [app.lftcrwd.com](https://app.lftcrwd.com) · **Website:** [lftcrwd.com](https://lftcrwd.com) · **Changelog:** [lftcrwd.com/changelog](https://lftcrwd.com/changelog/)
+
+---
+
+## How it's built
+
+| Part | Technology | Where |
+|---|---|---|
+| Website (front end) | WordPress | [lftcrwd.com](https://lftcrwd.com) — Home, Features, Changelog |
+| App (back end) | Next.js 16 (App Router) on Node.js, Tailwind CSS 4 | [Spacefast](https://spacefast.com) — app.lftcrwd.com |
+| Database | Spacefast Space database (MariaDB 11.8) | Spacefast |
+| File storage | Spacefast storage (progress photos, profile photos) | Spacefast |
+| Sign-in | Google (OAuth), invite-only | Google Cloud |
+| Email | Resend | — |
+
+The app moved from Vercel + Supabase to Spacefast in October 2026 (v1.1.0). The step-by-step migration guide is public: **[Migration from Vercel and Supabase to Spacefast](https://github.com/c1tadelstudios/spacefast/blob/main/migration-from-vercel-and-supabase-to-spacefast.md)**. Working notes are in [`spacefast/MIGRATION-NOTES.md`](spacefast/MIGRATION-NOTES.md).
 
 ---
 
 ## Screenshots
-Coming Soon
+
+Coming soon.
+
 ---
 
 ## Features
@@ -21,9 +38,9 @@ Coming Soon
 - "Needs attention" badge — amber pill when a client has been quiet for 3+ days
 
 **Client management**
-- Invite clients by email — sends a branded magic link onboarding email via Resend
-- Re-invite at any time with a fresh link
-- Remove a client (soft delete — data is kept)
+- Invite clients by email — adds them to the client list and sends a branded onboarding email via Resend; they sign in with the Google account for that email
+- Re-invite at any time (also restores an archived client)
+- Remove a client (archived — their data is kept)
 
 **Client detail view — three tabs**
 - **Activity** — recent sessions, compliance heatmap, cardio history, meals log, weight trend chart, per-exercise overload charts
@@ -37,8 +54,6 @@ Coming Soon
 **Branding**
 - Set a custom business name and tagline
 - Appears on the client's Today dashboard header and in onboarding emails
-
----
 
 ### For clients
 
@@ -54,8 +69,8 @@ Coming Soon
 - Trainer-assigned program rendered inline as a reference
 
 **Nutrition tracking**
-- Log protein (g), water (oz), creatine toggle, cardio (Treadmill / Stepper / Bike / Rower), steps, and weight
-- All saves in real time to Supabase
+- Log protein (g), water (oz), creatine toggle, cardio (Treadmill / Stepper / Bike / Rower, plus what you listened to), steps, and weight
+- Everything saves in real time
 
 **Meal plan**
 - View the trainer-assigned plan — toggle each meal done
@@ -65,99 +80,88 @@ Coming Soon
 - Weight trend chart over time
 - Per-exercise max weight chart (progressive overload tracking)
 - Progress photo uploads — 3-column date-stamped grid, lightbox viewer
-- Photos stored in a private Supabase Storage bucket, served via signed URLs
+- Photos are stored privately on Spacefast; only the client and the coach can view them. Large phone photos are resized in the browser to fit the 5 MB per-file limit.
 
 **Messaging**
 - Direct chat thread with the trainer
 - Unread dot on the nav icon when a new trainer message arrives; clears on visit
 
 **Profile & export**
-- Gravatar avatar with initials fallback
+- Profile photo (upload, or Gravatar) with initials fallback
 - Export workout history as Markdown, CSV, Word, or PDF — all client-side, no dependencies
 
 ---
 
-## Stack
+## Deploying
 
-- **Framework:** Next.js 16 (App Router)
-- **Styling:** Tailwind CSS 4
-- **Database & Auth:** Supabase (PostgreSQL + magic link auth)
-- **Email:** Resend
-- **Deployment:** Vercel
+The app deploys from GitHub to a Spacefast Space: **pushing `main` deploys to production**; any other branch builds a private preview at `https://<space>--br-<branch>.space.fast`.
 
----
+### 1. Create the Space
 
-## Running locally
+Create a Space on [Spacefast](https://spacefast.com) and connect this repository from its **Builds** page. Spacefast builds Next.js 16.2+ automatically.
 
-### 1. Clone the repo
+### 2. Set environment variables
 
-```bash
-git clone https://github.com/YOUR_USERNAME/lftcrwd.git
-cd lftcrwd
-npm install
-```
+See [`.env.example`](.env.example). Mark the keys and secrets as **secret** in the Space (write-only — keep your own copy).
 
-### 2. Set up Supabase
-
-Create a project at [supabase.com](https://supabase.com). In the Supabase dashboard → SQL Editor, run `supabase-schema.sql` to create all tables, or apply migrations from the `migrations/` directory in order.
-
-### 3. Configure environment variables
-
-```bash
-cp .env.example .env.local
-```
-
-Fill in `.env.local`:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# Resend — for invite emails (optional)
-RESEND_API_KEY=re_your_key
-
-# Linear — for in-app issue reporting from the trainer dashboard (optional)
-# Get these from your Linear workspace: Settings → API (key) and the relevant project/team/label IDs
-LINEAR_API_KEY=lin_api_your_key
-LINEAR_PROJECT_ID=your-project-id
-LINEAR_TEAM_ID=your-team-id
-LINEAR_LABEL_COACH_REPORT=your-label-id
-
-# Public URL
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
-
-### 4. Run
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). Log in at `/login` — the "Coach area" appears in the profile for admin accounts.
-
----
-
-## Auth model
-
-| Role | Auth method | Access |
+| Variable | Required | Purpose |
 |---|---|---|
-| **Trainer** | Magic link (same as clients) + `is_admin` flag in Supabase | `/trainer/*` — all client data via "Coach area" in profile |
-| **Client** | Magic link (email OTP via Supabase) | Their own data only |
+| `SESSION_SECRET` | yes | Signs the sign-in cookie. A long random string. |
+| `GOOGLE_CLIENT_ID` | yes | Google OAuth web client id |
+| `GOOGLE_CLIENT_SECRET` | yes | Google OAuth web client secret |
+| `NEXT_PUBLIC_SITE_URL` | yes | Public app URL, e.g. `https://app.lftcrwd.com` (used for links in emails) |
+| `RESEND_API_KEY` | optional | Invite emails |
+| `LINEAR_API_KEY`, `LINEAR_PROJECT_ID`, `LINEAR_TEAM_ID`, `LINEAR_LABEL_COACH_REPORT` | optional | In-app issue reporting from the trainer dashboard |
 
-Both roles log in the same way — via magic link at `/login`. The difference is the `is_admin` flag on the Supabase user account.
+`NEXT_PUBLIC_*` values are baked in at build time — rebuild after changing them.
 
-**To set up a trainer account:**
-1. Create the trainer's account by inviting them (or having them sign in via `/login`)
-2. In the Supabase dashboard → Authentication → Users → find the trainer's account
-3. Edit their user and set `is_admin: true` in the **User Metadata** field:
-   ```json
-   { "is_admin": true }
-   ```
-4. The "Coach area" link will appear in their profile, giving access to `/trainer`
+### 3. Create the database tables
 
-This is a single-trainer setup by default — there is no multi-trainer role system.
+In the Spacefast dashboard: your Space → **Database → Open db console**. In phpMyAdmin, **select the Space's existing database in the sidebar** (don't create a new one), then **Import** [`spacefast/schema.sql`](spacefast/schema.sql).
+
+### 4. Set up Google sign-in
+
+In [Google Cloud Console](https://console.cloud.google.com):
+1. **OAuth consent screen** — External. While in Testing, add each person who may sign in as a test user.
+2. **Credentials → Create OAuth client ID → Web application**, with one authorized redirect URI per hostname:
+   - `https://<your-space>.space.fast/api/auth/google/callback`
+   - `https://<your-space>--br-<branch>.space.fast/api/auth/google/callback` (branch previews)
+   - `https://app.lftcrwd.com/api/auth/google/callback` (custom domain)
+
+### 5. Add the first trainer
+
+Sign-in is invite-only: only emails in the `users` table can sign in. Add yourself as the admin in the db console's SQL tab:
+
+```sql
+INSERT INTO users (email, name, is_admin) VALUES ('you@example.com', 'Your Name', TRUE);
+```
+
+Sign in with Google using that email; the "Coach area" appears in your profile. Invite clients from the trainer dashboard.
+
+### 6. Custom domain (optional)
+
+Space → **Domains → Add domain**, then create the records it lists at your DNS host (A records and one verification TXT record; remove any old CNAME on that name).
+
+---
+
+## Developing
+
+- **Day to day:** push a branch and test on its private preview — the database and storage only exist on Spacefast.
+- **Locally:** `npm install && npm run dev` runs the UI, but data calls need the Space's `env.DB` binding and fail locally. `npm run build` and `npx tsc --noEmit` work offline and catch most errors before pushing.
+- **Database changes:** add the SQL to `spacefast/schema.sql` and run it in the db console. The app checks table and column names against [`lib/db/schema.ts`](lib/db/schema.ts) — add new columns there too.
+
+---
+
+## Auth and permissions
+
+| Role | Sign-in | Access |
+|---|---|---|
+| **Trainer** | Google, with `is_admin = TRUE` in `users` | `/trainer/*` — all clients' data via "Coach area" in profile |
+| **Client** | Google, invited by email | Their own data only |
+
+- Google sign-in sets an HMAC-signed session cookie; [`middleware.ts`](middleware.ts) checks it on every request and passes the user to API routes.
+- The browser reads and writes data through one endpoint, `/api/db`, which enforces ownership: clients can only touch rows with their own `user_id`, and the `users` table is off-limits. This replaces the row-level security the app had on Supabase.
+- This is a single-trainer setup by default — there is no multi-trainer role system.
 
 ---
 
@@ -165,8 +169,13 @@ This is a single-trainer setup by default — there is no multi-trainer role sys
 
 ```
 app/
-  (auth)/             # Magic link confirm, login
-  api/                # API routes (auth, trainer, feedback)
+  api/
+    auth/             # Google sign-in, session (/me), sign out
+    db/               # Browser data endpoint with ownership checks
+    avatar/           # Profile photo upload and serving
+    progress-photos/  # Progress photo upload, list, delete, serving
+    trainer/          # Trainer-only APIs (clients, invites, plans, messages)
+  login/              # Sign in with Google
   trainer/            # Trainer portal pages
   workout/            # Client workout logger
   nutrition/          # Client meal view
@@ -175,14 +184,24 @@ app/
   profile/            # Client profile and settings
 components/           # Shared React components
 lib/
-  supabase.ts         # Browser Supabase client and DB helpers
-  supabase-server.ts  # Server-side Supabase client
-  supabase-admin.ts   # Admin client (service role)
-  plan.ts             # Static plan data
+  db/
+    query.ts          # Query builder (Supabase-style call shape)
+    browser.ts        # Browser client → /api/db
+    server.ts         # Runs queries on the Space database; ownership rules
+    schema.ts         # Allowed tables and columns
+  supabase.ts         # Name kept for existing imports — now the Spacefast data client
+  supabase-admin.ts   # Server-side full-access data client
+  session.ts          # Signed session cookie
+  storage.ts          # Spacefast storage (upload / get / delete)
+  image.ts            # In-browser photo resizing
+  email.ts            # Resend invite emails
 hooks/                # Custom React hooks
 middleware.ts         # Route protection
-migrations/           # Database migrations
-supabase-schema.sql   # Full schema — apply once to a new project
+spacefast/
+  schema.sql          # Database schema — import once in the db console
+  build_import.py     # Converts a Supabase backup into a MariaDB import
+  MIGRATION-NOTES.md  # Notes from the Vercel + Supabase → Spacefast move
+migrations/, supabase/, supabase-schema.sql   # Legacy Supabase SQL, kept for reference only
 ```
 
 ---
