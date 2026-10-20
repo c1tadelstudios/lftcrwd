@@ -7,15 +7,7 @@ A coaching platform built for personal trainers and their clients. Coaches manag
 ---
 
 ## Screenshots
-
-| Trainer Dashboard | Client Today | Workout Logger |
-|---|---|---|
-| ![Trainer Dashboard](screenshots/trainer-dashboard.png) | ![Client Today](screenshots/client-today.png) | ![Workout Logger](screenshots/workout-logger.png) |
-
-| Client Detail | Progress | Messages |
-|---|---|---|
-| ![Client Detail](screenshots/client-detail.png) | ![Progress](screenshots/progress.png) | ![Messages](screenshots/messages.png) |
-
+Coming Soon
 ---
 
 ## Features
