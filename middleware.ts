@@ -19,7 +19,9 @@ export async function middleware( request: NextRequest ) {
   requestHeaders.delete( 'x-is-admin' );
 
   // ── Public routes ─────────────────────────────────────────────────────────
-  if ( pathname.startsWith( '/login' ) || pathname.startsWith( '/api/auth' ) ) {
+  // Icons and the web app manifest must load without signing in (browser tab, Add to Home Screen).
+  const isAppAsset = pathname === '/manifest.webmanifest' || /^\/(icon|apple-icon|favicon|apple-touch-icon|web-app-manifest)[^/]*$/.test( pathname );
+  if ( isAppAsset || pathname.startsWith( '/login' ) || pathname.startsWith( '/api/auth' ) ) {
     return NextResponse.next( { request: { headers: requestHeaders } } );
   }
 

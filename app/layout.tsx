@@ -6,7 +6,6 @@ import AppShell from '@/components/AppShell';
 export const metadata: Metadata = {
   title: 'lftcrwd',
   description: 'lftcrwd App',
-  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',

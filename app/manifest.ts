@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'lftcrwd',
     short_name: 'lftcrwd',
-    description: 'lftcrwd fitness app',
+    description: 'Coaching platform for personal trainers and their clients',
     start_url: '/',
     display: 'standalone',
     background_color: '#09090b',
