@@ -110,12 +110,15 @@ The app queried Supabase **from the browser**, relying on RLS. With no browser-r
 - Push a branch → Spacefast builds a **private preview** at `<space>--br-<branch>.space.fast`; only the production branch goes live.
 - Keep Vercel + Supabase serving users until the cutover.
 
-## 10. Cutover (to do)
+## 10. Cutover
+
+- **Gotcha — Vercel is still watching `main`.** Merging the Spacefast code to `main` also deploys it to Vercel, where it can't work (no `env.DB`). Disconnect the repo in Vercel → Settings → Git (or point the domain at Spacefast) *before* merging.
+
 
 - [x] Load schema + data via db console
 - [x] Sign in on preview, verify data (Google sign-in + imported data working on the branch preview)
 - [ ] Confirm storage with a real upload, re-upload photos
-- [ ] Remove probe route, merge to `main`
+- [x] Remove probe route, merge to `main` (live build ~2 min; old version keeps serving until it finishes)
 - [ ] Point the custom domain at Spacefast
 - [ ] Final data sync just before switching DNS
 - [ ] Retire Vercel and Supabase after a quiet week
