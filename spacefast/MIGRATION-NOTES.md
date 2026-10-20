@@ -2,7 +2,7 @@
 
 Working log from moving **lftcrwd** (Next.js 16.2 App Router, Supabase Postgres + Auth + Storage, deployed on Vercel) fully onto **Spacefast**: hosting, database, sign-in and file storage. Source material for a public guide. No secrets or personal data here; placeholders are in `<angle brackets>`.
 
-Status: code migrated on branch `spacefast`, verified locally; live cutover pending.
+Status (2026-10-20): **live on Spacefast** at app.lftcrwd.com. Remaining: confirm a real photo upload, retire Vercel + Supabase.
 
 ---
 
@@ -119,7 +119,7 @@ The app queried Supabase **from the browser**, relying on RLS. With no browser-r
 - [x] Sign in on preview, verify data (Google sign-in + imported data working on the branch preview)
 - [ ] Confirm storage with a real upload, re-upload photos
 - [x] Remove probe route, merge to `main` (live build ~2 min; old version keeps serving until it finishes)
-- [ ] Point the custom domain at Spacefast
+- [x] Point the custom domain at Spacefast — verified + HTTPS ~5 min after the DNS was clean (one A record entry per IP, the one TXT value, no CNAME). Two failures on the way: a leftover CNAME (`provider_claim_rejected`) and a second TXT value (`duplicate_verification_records`).
   - `sf domains add app.<domain> --space <space>` returns the exact records. For our subdomain it asked only for **two A records** (no TXT, no CNAME); copy the IPs from your own output.
   - At the DNS host, **delete the old Vercel CNAME first** (a CNAME can't coexist with A records on the same name), then add the A records. Leave MX/email and other hosts' records alone.
   - Add `https://app.<domain>/api/auth/google/callback` to the Google OAuth client.
