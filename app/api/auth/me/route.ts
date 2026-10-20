@@ -26,15 +26,15 @@ export async function GET( request: NextRequest ) {
   } );
 }
 
-/** Update the signed-in user's own name or avatar (replaces supabase.auth.updateUser). */
+/** Update the signed-in user's own display name (replaces supabase.auth.updateUser). */
 export async function PATCH( request: NextRequest ) {
   const s = await session( request );
   if ( ! s ) return NextResponse.json( { error: 'Unauthorized' }, { status: 401 } );
   const body = await request.json().catch( () => ( {} ) ) as { data?: { name?: unknown; avatar_url?: unknown } };
   const patch: Record<string, string | null> = {};
   if ( typeof body.data?.name === 'string' ) patch.name = body.data.name.trim().slice( 0, 200 ) || null;
-  if ( typeof body.data?.avatar_url === 'string' ) patch.avatar_url = body.data.avatar_url.slice( 0, 1024 );
-  if ( ! Object.keys( patch ).length ) return NextResponse.json( { error: 'Nothing to update' }, { status: 400 } );
+  // avatar_url is set by /api/avatar when a photo is uploaded; it isn't client-editable.
+  if ( ! Object.keys( patch ).length ) return NextResponse.json( { ok: true } );
   const { error } = await db.from( 'users' ).update( patch ).eq( 'id', s.uid );
   if ( error ) return NextResponse.json( { error: error.message }, { status: 500 } );
   return NextResponse.json( { ok: true } );

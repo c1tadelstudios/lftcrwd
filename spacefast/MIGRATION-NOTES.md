@@ -99,7 +99,11 @@ The app queried Supabase **from the browser**, relying on RLS. With no browser-r
 
 - Space storage limit: **5 MiB per file**. Phone photos are often bigger — we shrink in the browser (canvas → JPEG, ≤2400px) before upload.
 - Files are served through authenticated routes instead of signed URLs.
-- `env.STORAGE` method names: _to confirm with the probe (assumed R2-style put/get/delete)._
+- **`env.STORAGE` is NOT R2-style.** A probe of the binding showed exactly `upload`, `get`, `delete` (mirroring the Zero client SDK `@spacefast/zero/client` `storage`):
+  - `upload(blob, { public? })` → `{ id, contentType, size, url }` — the platform assigns a **32-hex `id`**; you can't choose a path/key.
+  - `get(id)` → a `Response` (or `null` if missing); `delete(id)`.
+  - So Supabase's `bucket/<user>/<file>` path scheme doesn't carry over: store each returned `id` in your database (we added a `progress_photos` table and keep avatar ids in `users.avatar_url`), and look ownership up there before serving a file.
+  - Tip: probe a binding's methods before coding to it — `Object.getOwnPropertyNames(Object.getPrototypeOf(env.STORAGE))`.
 
 ## 9. Previews and testing
 
@@ -108,9 +112,9 @@ The app queried Supabase **from the browser**, relying on RLS. With no browser-r
 
 ## 10. Cutover (to do)
 
-- [ ] Load schema + data via db console
-- [ ] Sign in on preview, verify data
-- [ ] Confirm storage, re-upload photos
+- [x] Load schema + data via db console
+- [x] Sign in on preview, verify data (Google sign-in + imported data working on the branch preview)
+- [ ] Confirm storage with a real upload, re-upload photos
 - [ ] Remove probe route, merge to `main`
 - [ ] Point the custom domain at Spacefast
 - [ ] Final data sync just before switching DNS
