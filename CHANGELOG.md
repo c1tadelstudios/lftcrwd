@@ -4,6 +4,16 @@ All notable changes to lftcrwd — the coaching platform for online coaches and 
 
 ---
 
+## v1.1.0 — 2026-10-20
+
+- Moved hosting from Vercel to Spacefast, and the database from Supabase to the Spacefast Space database (MariaDB)
+- Sign-in is now "Continue with Google"; invited clients sign in with the Google account for their invited email
+- Progress photos and profile photos are stored on Spacefast; large photos are resized automatically to fit
+- Security: photo and check-in endpoints now only return the signed-in user's own data (the trainer can still see clients')
+- Fix: the cardio "listening to" field now saves
+
+---
+
 ## v1.0.2 — 2026-05-23
 
 - Bump: redeploy to restore service
