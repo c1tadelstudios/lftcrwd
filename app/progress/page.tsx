@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Camera, Check, X } from 'lucide-react';
+import { shrinkImage } from '@/lib/image';
 import { supabase, getRecentSessions, getWeightHistory, getOrCreateDailyLog, today, type WorkoutSession } from '@/lib/supabase';
 
 type DailyLog = {
@@ -321,19 +322,14 @@ export default function ProgressPage() {
     if (!user) return;
     setUploading(true);
 
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const dateStr = new Date().toISOString().split('T')[0];
-    const filename = `${dateStr}-${Date.now()}.${ext}`;
-    const path = `${user.id}/${filename}`;
+    const form = new FormData();
+    form.append('file', await shrinkImage(file));
+    const res = await fetch('/api/progress-photos', { method: 'POST', body: form });
 
-    const { error } = await supabase.storage
-      .from('progress-photos')
-      .upload(path, file, { contentType: file.type, upsert: false });
-
-    if (error) {
-      setUploadError(error.message);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setUploadError(body.error || 'Upload failed. Please try again.');
     } else {
-      // Reload to get fresh signed URLs
       const listRes = await fetch(`/api/progress-photos?userId=${user.id}`);
       if (listRes.ok) {
         const data = await listRes.json();

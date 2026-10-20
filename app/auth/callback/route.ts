@@ -1,11 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-// Forward all params to the client-side confirm page which handles auth in the browser
-export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
-  const confirmUrl = new URL('/auth/confirm', request.url);
-  url.searchParams.forEach((value, key) => {
-    confirmUrl.searchParams.set(key, value);
-  });
-  return NextResponse.redirect(confirmUrl);
+// Old Supabase magic-link landing page. Sign-in is now Google; send any old link to the login screen.
+export function GET( request: Request ) {
+  return NextResponse.redirect( new URL( '/login', request.url ) );
 }

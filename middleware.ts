@@ -1,41 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createMiddlewareClient } from '@/lib/supabase-server';
+import { SESSION_COOKIE, verifySession } from '@/lib/session';
+
+function sessionSecret(): string | undefined {
+  const ctx = ( globalThis as Record<symbol, { env?: Record<string, unknown> } | undefined> )[
+    Symbol.for( '__cloudflare-context__' )
+  ];
+  const v = ctx?.env?.SESSION_SECRET;
+  return typeof v === 'string' ? v : process.env.SESSION_SECRET;
+}
 
 export async function middleware( request: NextRequest ) {
   const { pathname } = request.nextUrl;
 
+  // Identity headers are only ever set here; never trust a client-supplied value.
+  const requestHeaders = new Headers( request.headers );
+  requestHeaders.delete( 'x-user-id' );
+  requestHeaders.delete( 'x-user-email' );
+  requestHeaders.delete( 'x-is-admin' );
+
   // ── Public routes ─────────────────────────────────────────────────────────
-  if (
-    pathname.startsWith( '/login' ) ||
-    pathname.startsWith( '/auth' ) ||
-    pathname.startsWith( '/api/auth' ) ||
-    pathname.startsWith( '/auth/confirm' )
-  ) {
-    return NextResponse.next();
+  if ( pathname.startsWith( '/login' ) || pathname.startsWith( '/api/auth' ) ) {
+    return NextResponse.next( { request: { headers: requestHeaders } } );
   }
 
-  // ── All protected routes ───────────────────────────────────────────────────
-  const requestHeaders = new Headers( request.headers );
-  requestHeaders.delete( 'x-user-id' ); // strip any client-supplied value
-
-  const response = NextResponse.next( { request: { headers: requestHeaders } } );
-  const supabase = createMiddlewareClient( request, response );
-  const { data: { session } } = await supabase.auth.getSession();
+  const session = await verifySession( request.cookies.get( SESSION_COOKIE )?.value, sessionSecret() );
 
   if ( ! session ) {
-    if ( pathname.startsWith( '/api/trainer' ) ) {
+    if ( pathname.startsWith( '/api/' ) ) {
       return NextResponse.json( { error: 'Unauthorized' }, { status: 401 } );
     }
     return NextResponse.redirect( new URL( '/login', request.url ) );
   }
 
-  // Stamp user ID so API routes don't need to re-parse cookies.
-  requestHeaders.set( 'x-user-id', session.user.id );
-
-  // ── Archived user check ───────────────────────────────────────────────────
-  if ( session.user?.email?.startsWith( '_archived' ) ) {
-    return NextResponse.redirect( new URL( '/api/auth/signout', request.url ) );
-  }
+  // Stamp identity so API routes don't need to re-parse cookies.
+  requestHeaders.set( 'x-user-id', session.uid );
+  requestHeaders.set( 'x-user-email', session.email );
+  requestHeaders.set( 'x-is-admin', session.adm ? '1' : '0' );
 
   // ── Trainer / admin routes ────────────────────────────────────────────────
   if (
@@ -43,12 +43,8 @@ export async function middleware( request: NextRequest ) {
     pathname.startsWith( '/api/trainer' ) ||
     pathname.startsWith( '/api/feedback' )
   ) {
-    const isAdmin =
-      session.user?.user_metadata?.is_admin === true ||
-      session.user?.app_metadata?.is_admin === true;
-
-    if ( ! isAdmin ) {
-      if ( pathname.startsWith( '/api/trainer' ) ) {
+    if ( ! session.adm ) {
+      if ( pathname.startsWith( '/api/' ) ) {
         return NextResponse.json( { error: 'Unauthorized' }, { status: 401 } );
       }
       return NextResponse.redirect( new URL( '/login', request.url ) );

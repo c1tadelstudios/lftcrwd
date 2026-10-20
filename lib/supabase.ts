@@ -1,23 +1,13 @@
-import { createBrowserClient } from '@supabase/ssr';
-
-let _supabase: ReturnType<typeof createBrowserClient> | null = null;
+// The app's data client. Supabase is gone: this is a stand-in with the same call shape, backed by
+// the Spacefast Space database through /api/db (see lib/db/browser.ts). The name is kept so the
+// many components that import { supabase } did not need rewriting.
+import { browserClient } from '@/lib/db/browser';
 
 export function getSupabase() {
-  if (!_supabase) {
-    _supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }
-  return _supabase;
+  return browserClient;
 }
 
-// Convenience alias for components that import { supabase }
-export const supabase = new Proxy({} as ReturnType<typeof createBrowserClient>, {
-  get(_target, prop) {
-    return (getSupabase() as Record<string | symbol, unknown>)[prop];
-  },
-});
+export const supabase = browserClient;
 
 // =============================================================================
 // Coaching platform types
@@ -159,13 +149,13 @@ export async function getMyWorkoutPlan(): Promise<string | null> {
 
   const { data } = await client
     .from('client_workout_plans')
-    .select('plan, user_plan, active_source')
+    .select('content, user_plan, active_source')
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (!data) return null;
   if (data.active_source === 'user') return data.user_plan ?? null;
-  return data.plan ?? data.user_plan ?? null;
+  return data.content ?? data.user_plan ?? null;
 }
 
 /** Gets the trainer-assigned meal plan for the current user. */
@@ -176,13 +166,13 @@ export async function getMyMealPlan(): Promise<string | null> {
 
   const { data } = await client
     .from('client_meal_plans')
-    .select('plan, user_plan, active_source')
+    .select('content, user_plan, active_source')
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (!data) return null;
   if (data.active_source === 'user') return data.user_plan ?? null;
-  return data.plan ?? data.user_plan ?? null;
+  return data.content ?? data.user_plan ?? null;
 }
 
 /** Gets meal calorie targets for the current user. */
@@ -193,11 +183,14 @@ export async function getMealCalorieTargets(): Promise<Record<number, number>> {
 
   const { data } = await client
     .from('meal_calorie_targets')
-    .select('*')
-    .eq('user_id', user.id)
-    .single();
+    .select('meal_index, calories')
+    .eq('user_id', user.id);
 
-  return (data as Record<number, number>) ?? {};
+  const targets: Record<number, number> = {};
+  for (const row of (data as { meal_index: number; calories: number }[] | null) ?? []) {
+    targets[row.meal_index] = row.calories;
+  }
+  return targets;
 }
 
 // =============================================================================

@@ -32,8 +32,15 @@ export async function GET( request: NextRequest ) {
     )
   );
 
+  const storage = env.STORAGE as Record<string, unknown> | undefined;
+  const storageMethods = storage
+    ? [ ...new Set( [ ...Object.keys( storage ), ...Object.getOwnPropertyNames( Object.getPrototypeOf( storage ) ?? {} ) ] ) ]
+        .filter( k => k !== 'constructor' ).sort()
+    : null;
+
   return NextResponse.json( {
     hasCloudflareContext: Boolean( ctx ),
+    storageMethods,
     envBindingNames: Object.keys( env ).filter( k => ! /KEY|SECRET|PASSWORD|TOKEN/i.test( k ) ).sort(),
     hasDB: Boolean( db ),
     dbCheck,

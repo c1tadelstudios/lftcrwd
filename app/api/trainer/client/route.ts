@@ -1,38 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
-// Auth checked by middleware — only trainer can reach this route.
+export const dynamic = 'force-dynamic';
 
-export async function DELETE(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get('userId');
-  if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+// Auth checked by middleware — only admins (the trainer) can reach this route.
 
-  // Fetch the user to get their current email.
-  const { data: { user }, error: fetchError } = await supabaseAdmin.auth.admin.getUserById(userId);
-  if (fetchError || !user) {
-    return NextResponse.json({ error: fetchError?.message ?? 'User not found' }, { status: 404 });
-  }
+// "Remove" a client: archive them so they can no longer sign in. Their history is kept.
+export async function DELETE( request: NextRequest ) {
+  const userId = request.nextUrl.searchParams.get( 'userId' );
+  if ( ! userId ) return NextResponse.json( { error: 'userId required' }, { status: 400 } );
 
-  const originalEmail = user.email ?? '';
+  const { data: user } = await supabaseAdmin.from( 'users' ).select( 'id, is_admin' ).eq( 'id', userId ).maybeSingle();
+  if ( ! user ) return NextResponse.json( { error: 'User not found' }, { status: 404 } );
+  if ( user.is_admin ) return NextResponse.json( { error: 'Admins cannot be archived here' }, { status: 400 } );
 
-  // Count existing archived users to determine the next archive number.
-  const { data: { users: allUsers } } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-  const archivedCount = allUsers.filter(u => u.email?.startsWith('_archived')).length;
-  const archiveNumber = archivedCount + 1;
-
-  // Rewrite email: _archivedN_localpart@domain.com
-  const atIndex = originalEmail.indexOf('@');
-  const localPart = atIndex !== -1 ? originalEmail.slice(0, atIndex) : originalEmail;
-  const domain = atIndex !== -1 ? originalEmail.slice(atIndex) : '@archived.invalid';
-  const archivedEmail = `_archived${archiveNumber}_${localPart}${domain}`;
-
-  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-    email: archivedEmail,
-  });
-
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ ok: true });
+  const { error } = await supabaseAdmin.from( 'users' ).update( { archived: true } ).eq( 'id', userId );
+  if ( error ) return NextResponse.json( { error: error.message }, { status: 500 } );
+  return NextResponse.json( { ok: true } );
 }
