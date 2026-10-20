@@ -24,8 +24,8 @@ export default function LoginPage() {
   }, [] );
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col justify-center px-6 z-50">
-      <div className="space-y-8">
+    <div className="fixed inset-0 bg-black flex flex-col justify-center px-6 z-50 md:items-center md:bg-[radial-gradient(ellipse_at_top,rgba(10,132,255,0.10),transparent_60%)] md:bg-black">
+      <div className="space-y-8 w-full md:max-w-[400px] md:bg-[#111111] md:border md:border-white/10 md:rounded-3xl md:p-10 md:shadow-2xl md:shadow-black/60">
         <div>
           <div className="w-12 h-12 rounded-2xl bg-[#0a84ff]/15 flex items-center justify-center mb-6">
             <Dumbbell size={22} className="text-[#0a84ff]" strokeWidth={2} />
