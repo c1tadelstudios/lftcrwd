@@ -1,9 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+// Server-only full-access data client (formerly the Supabase service-role client).
+// Backed by the Spacefast Space database; see lib/db/server.ts. Only use in API routes.
+import { db } from '@/lib/db/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder';
-
-// Service role client — bypasses RLS. Only use in server-side API routes.
-export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+export const supabaseAdmin = db;

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pencil, Check, X, LogOut, ChevronRight, Camera, Download } from 'lucide-react';
 import Link from 'next/link';
+import { shrinkImage } from '@/lib/image';
 import { supabase, getRecentSessions, getOrCreateDailyLog, today } from '@/lib/supabase';
 
 const AVATAR_COLORS = [
@@ -293,7 +294,7 @@ export default function ProfilePage() {
     setUploading(true);
     const ext = file.name.split('.').pop() ?? 'jpg';
     const path = `${userId}/avatar.${ext}`;
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from('avatars').upload(path, await shrinkImage(file), { upsert: true });
     if (!error) {
       const { data } = supabase.storage.from('avatars').getPublicUrl(path);
       const url = `${data.publicUrl}?t=${Date.now()}`;

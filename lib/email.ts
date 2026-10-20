@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const FROM = 'lftcrwd <hello@lftcrwd.com>';
 
 /**
- * Send a client invite email with a magic login link.
+ * Send a client invite email with a link to the sign-in page (Google sign-in).
  */
 export async function sendInviteEmail({
   to,
@@ -50,7 +50,7 @@ export async function sendInviteEmail({
               </h1>
 
               <p style="margin:0 0 28px;font-size:17px;line-height:1.6;color:rgba(255,255,255,0.55);">
-                lftcrwd is where you'll log your workouts, track nutrition, and stay connected with your coach. Tap the button below to get started — no password needed.
+                lftcrwd is where you'll log your workouts, track nutrition, and stay connected with your coach. Tap the button below and sign in with the Google account for this email address — no password needed.
               </p>
 
               <!-- CTA button -->

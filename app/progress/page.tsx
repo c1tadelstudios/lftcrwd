@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Camera, Check, X } from 'lucide-react';
+import { shrinkImage } from '@/lib/image';
 import { supabase, getRecentSessions, getWeightHistory, getOrCreateDailyLog, today, type WorkoutSession } from '@/lib/supabase';
 
 type DailyLog = {
@@ -193,7 +194,7 @@ function HabitGrid({ logs }: { logs: DailyLog[] }) {
   );
 }
 
-type Photo = { name: string; url: string; date: string };
+type Photo = { name: string; url: string; date: string; uploaded_at?: string };
 
 export default function ProgressPage() {
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
@@ -270,8 +271,9 @@ export default function ProgressPage() {
   const [deletingPhoto, setDeletingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  function canDelete(filename: string): boolean {
-    const ts = parseInt(filename.split('-')[3]?.split('.')[0] || '0');
+  // Members can remove a photo within 24 hours of uploading it.
+  function canDelete(photo: Photo): boolean {
+    const ts = photo.uploaded_at ? Date.parse(photo.uploaded_at) : NaN;
     return !isNaN(ts) && Date.now() - ts < 24 * 60 * 60 * 1000;
   }
 
@@ -321,19 +323,14 @@ export default function ProgressPage() {
     if (!user) return;
     setUploading(true);
 
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const dateStr = new Date().toISOString().split('T')[0];
-    const filename = `${dateStr}-${Date.now()}.${ext}`;
-    const path = `${user.id}/${filename}`;
+    const form = new FormData();
+    form.append('file', await shrinkImage(file));
+    const res = await fetch('/api/progress-photos', { method: 'POST', body: form });
 
-    const { error } = await supabase.storage
-      .from('progress-photos')
-      .upload(path, file, { contentType: file.type, upsert: false });
-
-    if (error) {
-      setUploadError(error.message);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setUploadError(body.error || 'Upload failed. Please try again.');
     } else {
-      // Reload to get fresh signed URLs
       const listRes = await fetch(`/api/progress-photos?userId=${user.id}`);
       if (listRes.ok) {
         const data = await listRes.json();
@@ -813,7 +810,7 @@ export default function ProgressPage() {
             <p className="text-center text-white/45 text-[14px] mt-3">
               {new Date(lightboxPhoto.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
-            {canDelete(lightboxPhoto.name) ? (
+            {canDelete(lightboxPhoto) ? (
               <button
                 onClick={() => deletePhoto(lightboxPhoto)}
                 disabled={deletingPhoto}
