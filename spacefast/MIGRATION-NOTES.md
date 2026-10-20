@@ -74,6 +74,7 @@ const { results } = await env.DB.prepare('select 1 as ok, version() as v').all()
 - **Gotcha — `ON DUPLICATE KEY` fires on ANY unique key**, not just the one you meant. Never let a browser-supplied `id` into an upsert.
 - Validate the converted schema against the same engine locally: `docker run mariadb:11.8`.
 - Import: Spacefast has no import command; use the db console's **Import** (schema file first, then data).
+- **Gotcha — don't create a database.** Each Space has exactly one pre-made database and the console user can't create others (`#1044 Access denied ... to database`). Select the existing database in phpMyAdmin's sidebar first, then Import (otherwise `#1046 No database selected`). Ours was named with a number — the same as the console user (`SHOW DATABASES;` lists it). In the SQL tab, a numeric name needs backticks: ``USE `<number>`;``. Keep `CREATE DATABASE` / `USE` lines out of your SQL files.
 - Python 3.9's `fromisoformat` rejects Postgres's 1–5 digit fractional seconds — pad to 6.
 
 ## 6. Replacing Supabase Auth
