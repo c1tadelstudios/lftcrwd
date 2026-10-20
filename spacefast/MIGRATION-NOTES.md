@@ -110,12 +110,19 @@ The app queried Supabase **from the browser**, relying on RLS. With no browser-r
 - Push a branch → Spacefast builds a **private preview** at `<space>--br-<branch>.space.fast`; only the production branch goes live.
 - Keep Vercel + Supabase serving users until the cutover.
 
-## 10. Cutover (to do)
+## 10. Cutover
+
+- **Gotcha — Vercel is still watching `main`.** Merging the Spacefast code to `main` also deploys it to Vercel, where it can't work (no `env.DB`). Disconnect the repo in Vercel → Settings → Git (or point the domain at Spacefast) *before* merging.
+
 
 - [x] Load schema + data via db console
 - [x] Sign in on preview, verify data (Google sign-in + imported data working on the branch preview)
 - [ ] Confirm storage with a real upload, re-upload photos
-- [ ] Remove probe route, merge to `main`
+- [x] Remove probe route, merge to `main` (live build ~2 min; old version keeps serving until it finishes)
 - [ ] Point the custom domain at Spacefast
+  - `sf domains add app.<domain> --space <space>` returns the exact records. For our subdomain it asked only for **two A records** (no TXT, no CNAME); copy the IPs from your own output.
+  - At the DNS host, **delete the old Vercel CNAME first** (a CNAME can't coexist with A records on the same name), then add the A records. Leave MX/email and other hosts' records alone.
+  - Add `https://app.<domain>/api/auth/google/callback` to the Google OAuth client.
+  - Spacefast re-checks DNS every ~30 s for 10 min, then every 15 min; HTTPS is issued once DNS points at it. Optionally make it the primary (live) URL afterwards.
 - [ ] Final data sync just before switching DNS
 - [ ] Retire Vercel and Supabase after a quiet week
